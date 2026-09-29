@@ -7,7 +7,7 @@
 <meta name="description" content="Каждое соединение любого приложения идёт напрямую или через ваш VPN. Waypoint сам выясняет, как именно. Для macOS, с открытым кодом.">
 <meta property="og:title" content="Waypoint — умная маршрутизация для macOS">
 <meta property="og:description" content="Заблокированное — через VPN, остальное — напрямую. Само, для каждого сайта и приложения.">
-<meta property="og:image" content="img/overview.jpg">
+<meta property="og:image" content="img/overview.png">
 <meta name="color-scheme" content="dark light">
 <link rel="icon" href="img/icon.png">
 <style>
@@ -70,7 +70,7 @@
   .meta { margin-top: 18px; font-size: 14px; color: var(--muted); }
 
   /* window frame for screenshots */
-  .shot { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: #000;
+  .shot { border-radius: 26px; overflow: hidden; border: 1px solid var(--line); background: #000;
           box-shadow: 0 40px 90px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.03); }
   .shot img { display: block; width: 100%; height: auto; }
   .hero .shot { max-width: 900px; margin: 54px auto 0; }
@@ -100,8 +100,8 @@
   .dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 8px; flex: none; }
   .out b { font-size: 15.5px; } .out small { display: block; color: var(--muted); font-size: 14px; line-height: 1.4; }
 
-  .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  @media (max-width: 760px) { .shots { grid-template-columns: 1fr; } }
+  .shots { display: grid; gap: 40px; }
+  .shots figure { max-width: 900px; margin: 0 auto; width: 100%; }
   figure { margin: 0; }
   figcaption { color: var(--muted); font-size: 14.5px; margin-top: 10px; text-align: center; }
 
@@ -149,7 +149,7 @@
       <a class="btn" href="https://github.com/Zent0rn0/Waypoint">Исходный код</a>
     </div>
     <p class="meta">Apple Silicon · macOS 14+ · открытый код, MIT</p>
-    <div class="shot"><img src="img/overview.jpg" alt="Главный экран Waypoint: «Всё работает», статус VPN, сценарии и трафик за сессию" width="900" height="613"></div>
+    <div class="shot"><img src="img/overview.png" alt="Главный экран Waypoint: «Всё работает», статус VPN, сценарии и трафик за сессию" width="1800" height="1000"></div>
   </header>
 
   <section id="features" class="wrap">
@@ -185,8 +185,8 @@
     <h2>Выглядит как часть macOS</h2>
     <p class="sub">Liquid Glass на macOS 26, тёмная тема, боковая панель без лишнего шума. Каждый сервис, сценарий и приложение настраиваются в пару кликов.</p>
     <div class="shots">
-      <figure><div class="shot"><img src="img/scenarios.jpg" alt="Экран «Сценарии»" loading="lazy" width="900" height="613"></div><figcaption>Сценарии: набор правил одним переключателем</figcaption></figure>
-      <figure><div class="shot"><img src="img/services.jpg" alt="Экран «Сервисы»" loading="lazy" width="900" height="613"></div><figcaption>Сервисы: путь для каждого, «Авто» — решит сам</figcaption></figure>
+      <figure><div class="shot"><img src="img/scenarios.png" alt="Экран «Сценарии»" loading="lazy" width="1800" height="1160"></div><figcaption>Сценарии: набор правил одним переключателем</figcaption></figure>
+      <figure><div class="shot"><img src="img/services.png" alt="Экран «Сервисы»" loading="lazy" width="1800" height="1060"></div><figcaption>Сервисы: путь для каждого, «Авто» — решит сам</figcaption></figure>
     </div>
   </section>
 
