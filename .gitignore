@@ -1,0 +1,19 @@
+# build products
+.build/
+build/
+*.xcodeproj
+.swiftpm/
+DerivedData/
+
+# helper engines are downloaded by scripts/fetch-vendor.sh (pinned versions, SHA-256 checked)
+vendor/sing-box
+vendor/xray
+
+# never commit personal data: subscription links, server lists, tokens, the test sandbox
+.env
+*.local.json
+servers.json
+subscriptions.json
+connection-rules.json
+api.json
+.DS_Store
