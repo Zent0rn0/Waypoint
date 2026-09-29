@@ -539,7 +539,7 @@ struct SplitBar: View {
 
 // MARK: - Ambient backdrop
 
-/// Window background: near-black navy, indigo, plum and petrol melting into each other, drawn as a slowly drifting mesh (a few minutes per loop, barely noticeable),
+/// Window background: graphite and charcoal melting into each other, drawn as a slowly drifting mesh (a few minutes per loop, barely noticeable),
 /// plus one faint diagonal band of light. It is quiet on purpose — the glass on top is the subject — and it no longer
 /// follows the app's state: state is shown by the hero badge and the dots, not by tinting the whole window.
 struct AmbientBackdrop: View {
@@ -547,8 +547,8 @@ struct AmbientBackdrop: View {
     var body: some View {
         Group {
             if #available(macOS 15.0, *) { MeshBackdrop(dark: scheme == .dark) }
-            else { LinearGradient(colors: scheme == .dark ? [Color(red: 0.05, green: 0.07, blue: 0.20), Color(red: 0.16, green: 0.09, blue: 0.32)]
-                                                         : [Color(red: 0.90, green: 0.91, blue: 0.98), Color(red: 0.92, green: 0.88, blue: 0.97)],
+            else { LinearGradient(colors: scheme == .dark ? [Color(white: 0.03), Color(white: 0.09)]
+                                                         : [Color(white: 0.93), Color(white: 0.88)],
                                   startPoint: .topLeading, endPoint: .bottomTrailing) }
         }
         .ignoresSafeArea()
@@ -562,13 +562,13 @@ private struct MeshBackdrop: View {
 
     private func c(_ r: Double, _ g: Double, _ b: Double) -> Color { Color(red: r, green: g, blue: b) }
     private var colors: [Color] {
-        // near-black navy, deep indigo, dark plum, petrol, aubergine, midnight: many dark hues, none of them loud
-        dark ? [c(0.01, 0.02, 0.06), c(0.03, 0.05, 0.16), c(0.08, 0.04, 0.16),
-                c(0.01, 0.06, 0.13), c(0.08, 0.06, 0.22), c(0.10, 0.03, 0.14),
-                c(0.04, 0.03, 0.11), c(0.01, 0.02, 0.07), c(0.02, 0.09, 0.18)]
-             : [c(0.90, 0.91, 0.98), c(0.86, 0.88, 0.97), c(0.92, 0.88, 0.97),
-                c(0.87, 0.90, 0.98), c(0.90, 0.86, 0.98), c(0.85, 0.90, 0.98),
-                c(0.93, 0.89, 0.97), c(0.88, 0.91, 0.98), c(0.86, 0.89, 0.98)]
+        // graphite and charcoal with the faintest cool-green cast: no blue, no violet
+        dark ? [c(0.02, 0.02, 0.02), c(0.06, 0.06, 0.07), c(0.04, 0.05, 0.05),
+                c(0.05, 0.06, 0.06), c(0.09, 0.10, 0.10), c(0.05, 0.07, 0.06),
+                c(0.03, 0.03, 0.04), c(0.02, 0.02, 0.03), c(0.06, 0.07, 0.07)]
+             : [c(0.93, 0.93, 0.94), c(0.90, 0.91, 0.91), c(0.92, 0.93, 0.93),
+                c(0.91, 0.92, 0.92), c(0.88, 0.89, 0.90), c(0.90, 0.92, 0.91),
+                c(0.94, 0.94, 0.95), c(0.91, 0.92, 0.92), c(0.89, 0.91, 0.91)]
     }
 
     /// A mesh point drifting slowly around its resting place.
@@ -588,8 +588,8 @@ private struct MeshBackdrop: View {
                     ], colors: colors, smoothsColors: true)
                     // one faint diagonal band of light, drifting across
                     RoundedRectangle(cornerRadius: 60)
-                        .fill(LinearGradient(colors: [.clear, Color(red: 0.32, green: 0.36, blue: 0.95).opacity(dark ? 0.08 : 0.10),
-                                                       Color(red: 0.20, green: 0.50, blue: 0.90).opacity(dark ? 0.06 : 0.08), .clear],
+                        .fill(LinearGradient(colors: [.clear, Color.white.opacity(dark ? 0.05 : 0.30),
+                                                       Color(red: 0.55, green: 0.75, blue: 0.70).opacity(dark ? 0.04 : 0.10), .clear],
                                              startPoint: .leading, endPoint: .trailing))
                         .frame(width: g.size.width * 1.8, height: 110)
                         .rotationEffect(.degrees(-28))
