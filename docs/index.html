@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waypoint — умная маршрутизация для macOS</title>
+<meta name="description" content="Каждое соединение любого приложения идёт напрямую или через ваш VPN. Waypoint сам выясняет, как именно. Для macOS, с открытым кодом.">
+<meta property="og:title" content="Waypoint — умная маршрутизация для macOS">
+<meta property="og:description" content="Заблокированное — через VPN, остальное — напрямую. Само, для каждого сайта и приложения.">
+<meta property="og:image" content="img/overview.jpg">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="img/icon.png">
+<style>
+  :root {
+    --bg: #0b0c0d;
+    --bg2: #131516;
+    --card: rgba(255,255,255,.055);
+    --card-strong: rgba(255,255,255,.09);
+    --line: rgba(255,255,255,.09);
+    --text: #f2f3f4;
+    --muted: #9ba1a6;
+    --accent: #4d8dff;
+    --good: #34c759;
+    --warn: #ff9f0a;
+    --radius: 18px;
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f3f4f5; --bg2: #e9ebec; --card: rgba(255,255,255,.75); --card-strong: rgba(255,255,255,.95);
+      --line: rgba(0,0,0,.09); --text: #17191b; --muted: #5d656b; --accent: #1d6bff;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; font: 17px/1.55 var(--font); color: var(--text); background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(1200px 700px at 12% -10%, rgba(120,150,140,.10), transparent 60%),
+      radial-gradient(900px 600px at 100% 30%, rgba(255,255,255,.04), transparent 60%);
+    background-attachment: fixed;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+  /* nav */
+  nav { position: sticky; top: 0; z-index: 10; backdrop-filter: saturate(160%) blur(18px); -webkit-backdrop-filter: saturate(160%) blur(18px);
+        background: color-mix(in srgb, var(--bg) 72%, transparent); border-bottom: 1px solid var(--line); }
+  nav .wrap { display: flex; align-items: center; gap: 22px; height: 56px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; text-decoration: none; letter-spacing: .1px; }
+  .brand img { width: 26px; height: 26px; }
+  nav .links { margin-left: auto; display: flex; gap: 22px; font-size: 15px; color: var(--muted); }
+  nav .links a { text-decoration: none; }
+  nav .links a:hover { color: var(--text); }
+  @media (max-width: 640px) { nav .links a:not(.gh) { display: none; } }
+
+  /* hero */
+  .hero { text-align: center; padding: 84px 24px 40px; }
+  .hero h1 { font-size: clamp(38px, 6.2vw, 68px); line-height: 1.05; letter-spacing: -1.4px; margin: 0 0 20px; font-weight: 760; }
+  .hero h1 span { color: var(--muted); font-weight: 700; }
+  .hero p.lead { font-size: clamp(18px, 2.2vw, 22px); color: var(--muted); max-width: 660px; margin: 0 auto 32px; }
+  .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px; font-weight: 600; font-size: 16px;
+         text-decoration: none; border: 1px solid var(--line); background: var(--card); transition: transform .15s, background .15s; }
+  .btn:hover { transform: translateY(-1px); background: var(--card-strong); }
+  .btn.primary { background: var(--text); color: var(--bg); border-color: transparent; }
+  .btn.primary:hover { background: color-mix(in srgb, var(--text) 88%, transparent); }
+  .meta { margin-top: 18px; font-size: 14px; color: var(--muted); }
+
+  /* window frame for screenshots */
+  .shot { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: #000;
+          box-shadow: 0 40px 90px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.03); }
+  .shot img { display: block; width: 100%; height: auto; }
+  .hero .shot { max-width: 900px; margin: 54px auto 0; }
+
+  /* sections */
+  section.wrap { padding-top: 84px; }
+  h2 { font-size: clamp(28px, 4vw, 40px); letter-spacing: -.8px; line-height: 1.12; margin: 0 0 14px; font-weight: 720; }
+  .sub { color: var(--muted); max-width: 640px; margin: 0 0 40px; font-size: 18px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 22px 24px; }
+  .card h3 { margin: 0 0 8px; font-size: 18px; letter-spacing: -.2px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15.5px; line-height: 1.5; }
+  .ico { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 14px; font-size: 19px; background: var(--card-strong); border: 1px solid var(--line); }
+
+  /* diagram */
+  .flow { display: grid; grid-template-columns: 1fr auto 1.15fr auto 1.3fr; gap: 14px; align-items: center; }
+  @media (max-width: 860px) { .flow { grid-template-columns: 1fr; } .arrow { transform: rotate(90deg); justify-self: center; } }
+  .node { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; }
+  .node b { display: block; margin-bottom: 4px; }
+  .node small { color: var(--muted); font-size: 14px; line-height: 1.45; display: block; }
+  .arrow { color: var(--muted); font-size: 22px; }
+  .outs { display: grid; gap: 10px; }
+  .out { display: flex; gap: 12px; align-items: flex-start; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 8px; flex: none; }
+  .out b { font-size: 15.5px; } .out small { display: block; color: var(--muted); font-size: 14px; line-height: 1.4; }
+
+  .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 760px) { .shots { grid-template-columns: 1fr; } }
+  figure { margin: 0; }
+  figcaption { color: var(--muted); font-size: 14.5px; margin-top: 10px; text-align: center; }
+
+  .safety { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  @media (max-width: 700px) { .safety { grid-template-columns: 1fr; } }
+  .safety .card p { font-size: 15px; }
+
+  pre { margin: 0; background: #08090a; color: #e7e9ea; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; overflow-x: auto;
+        font: 14.5px/1.6 var(--mono); }
+  @media (prefers-color-scheme: light) { pre { background: #17191b; } }
+  ol.steps { margin: 0 0 22px; padding-left: 22px; color: var(--muted); }
+  ol.steps li { margin: 6px 0; } ol.steps b { color: var(--text); font-weight: 600; }
+  code { font-family: var(--mono); font-size: .92em; background: var(--card-strong); padding: 1px 6px; border-radius: 6px; }
+
+  .note { color: var(--muted); font-size: 15px; }
+  .limits { columns: 2; column-gap: 28px; margin: 0; padding-left: 20px; color: var(--muted); font-size: 15px; }
+  .limits li { break-inside: avoid; margin-bottom: 8px; }
+  @media (max-width: 700px) { .limits { columns: 1; } }
+
+  footer { margin-top: 96px; border-top: 1px solid var(--line); padding: 28px 0 44px; color: var(--muted); font-size: 14.5px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 26px; justify-content: space-between; }
+  footer a { text-decoration: none; border-bottom: 1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="img/icon.png" alt="">Waypoint</a>
+    <div class="links">
+      <a href="#features">Возможности</a>
+      <a href="#how">Как это работает</a>
+      <a href="#install">Установка</a>
+      <a class="gh" href="https://github.com/Zent0rn0/Waypoint">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+  <header class="hero wrap">
+    <h1>Заблокированное — через VPN.<br><span>Остальное — напрямую.</span></h1>
+    <p class="lead">Waypoint для macOS выбирает путь для каждого соединения каждого приложения: сам, быстро и без ручных списков. Работает поверх вашего VPN-клиента.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/Zent0rn0/Waypoint/releases/latest">Скачать для macOS</a>
+      <a class="btn" href="https://github.com/Zent0rn0/Waypoint">Исходный код</a>
+    </div>
+    <p class="meta">Apple Silicon · macOS 14+ · открытый код, MIT</p>
+    <div class="shot"><img src="img/overview.jpg" alt="Главный экран Waypoint: «Всё работает», статус VPN, сценарии и трафик за сессию" width="900" height="613"></div>
+  </header>
+
+  <section id="features" class="wrap">
+    <h2>Всё, что нужно, — и ничего лишнего</h2>
+    <p class="sub">Обычный VPN — всё или ничего: банки видят чужой адрес или не открывается YouTube. Waypoint решает это для каждого соединения отдельно.</p>
+    <div class="grid">
+      <div class="card"><div class="ico">🖥</div><h3>Все приложения</h3><p>Системный туннель перехватывает TCP и UDP любого приложения: Telegram, Discord, игры — без настройки каждого.</p></div>
+      <div class="card"><div class="ico">🏁</div><h3>Незнакомые сайты</h3><p>Первый пакет идёт напрямую, а если путь молчит — тот же пакет повторяется через VPN. Заблокированное открывается за секунду и запоминается.</p></div>
+      <div class="card"><div class="ico">🎛</div><h3>Сценарии</h3><p>Один переключатель — набор правил: «TikTok — свежая лента», «Банки только напрямую», видео, соцсети, голос и игры, AI, публичный Wi-Fi.</p></div>
+      <div class="card"><div class="ico">🎯</div><h3>Каждое соединение</h3><p>Для приложения, сайта или пары «приложение → сайт» выберите путь: авто, VPN, напрямую, блок или конкретный сервер.</p></div>
+      <div class="card"><div class="ico">🌍</div><h3>Подписки и серверы</h3><p>Ссылка подписки провайдера — и серверы обновляются сами. vless, trojan, hysteria2, ss, vmess; сложные Reality-серверы берёт на себя Xray.</p></div>
+      <div class="card"><div class="ico">🩺</div><h3>Диагностика</h3><p>Проверяет цепочку от сети до страны выхода, маршруты по популярным сайтам, TikTok, Telegram и Discord — понятным языком.</p></div>
+    </div>
+  </section>
+
+  <section id="how" class="wrap">
+    <h2>Как это устроено</h2>
+    <p class="sub">Перед вашим VPN-клиентом встаёт свой туннель. Он решает, куда идёт каждое соединение, и умеет обходить полнотуннельный VPN.</p>
+    <div class="flow">
+      <div class="node"><b>Любое приложение</b><small>Браузер, мессенджер, игра. Ничего настраивать не нужно.</small></div>
+      <div class="arrow">→</div>
+      <div class="node"><b>Туннель Waypoint</b><small>Смотрит на приложение, имя сайта и правила: ваши, сценариев и выученные.</small></div>
+      <div class="arrow">→</div>
+      <div class="outs">
+        <div class="out"><span class="dot" style="background:var(--good)"></span><div><b>Напрямую</b><small>Сокет привязан к Wi-Fi/Ethernet: быстро и без трафика VPN.</small></div></div>
+        <div class="out"><span class="dot" style="background:var(--accent)"></span><div><b>Через VPN</b><small>Лучший из VPN-клиента и ваших серверов — отдельно для видео, AI, звонков.</small></div></div>
+        <div class="out"><span class="dot" style="background:var(--warn)"></span><div><b>Проверка</b><small>Незнакомый сайт: гонка двух путей, победитель запоминается.</small></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <h2>Выглядит как часть macOS</h2>
+    <p class="sub">Liquid Glass на macOS 26, тёмная тема, боковая панель без лишнего шума. Каждый сервис, сценарий и приложение настраиваются в пару кликов.</p>
+    <div class="shots">
+      <figure><div class="shot"><img src="img/scenarios.jpg" alt="Экран «Сценарии»" loading="lazy" width="900" height="613"></div><figcaption>Сценарии: набор правил одним переключателем</figcaption></figure>
+      <figure><div class="shot"><img src="img/services.jpg" alt="Экран «Сервисы»" loading="lazy" width="900" height="613"></div><figcaption>Сервисы: путь для каждого, «Авто» — решит сам</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <h2>Безопасно по умолчанию</h2>
+    <p class="sub">Сетевой инструмент не должен ломать сеть и не должен требовать слепого доверия.</p>
+    <div class="safety">
+      <div class="card"><h3>Ломается — сеть остаётся</h3><p>VPN отключился, Waypoint закрыт или сбой самого туннеля — туннель гасится, и трафик идёт обычным путём. Потом сам повторяет попытку через 1, 5 и 30 минут.</p></div>
+      <div class="card"><h3>Ваши данные — ваши</h3><p>Ссылка подписки и серверы хранятся только у вас и нигде не показываются. Waypoint не читает настройки и подписки другого VPN-приложения.</p></div>
+      <div class="card"><h3>Только легальные разрешения</h3><p>Системный компонент ставится один раз через стандартное окно macOS с паролем. Он выключен по умолчанию и не обходит защиту системы.</p></div>
+      <div class="card"><h3>Открытый код</h3><p>Лицензия MIT. Внутри работают sing-box и Xray-core как отдельные процессы; их версии закреплены, а контрольные суммы проверяются.</p></div>
+    </div>
+  </section>
+
+  <section id="install" class="wrap">
+    <h2>Установка</h2>
+    <p class="sub">Нужны Mac с Apple Silicon и macOS 14 или новее. Liquid Glass — на macOS 26.</p>
+    <ol class="steps">
+      <li><b>Скачайте</b> <code>Waypoint-…-macos-arm64.zip</code> из <a href="https://github.com/Zent0rn0/Waypoint/releases/latest">Releases</a> и распакуйте.</li>
+      <li><b>Перенесите</b> <code>Waypoint.app</code> в <code>~/Applications</code> и снимите карантин — приложение подписано только ad-hoc:</li>
+    </ol>
+<pre>xattr -dr com.apple.quarantine ~/Applications/Waypoint.app
+open ~/Applications/Waypoint.app</pre>
+    <ol class="steps" start="3" style="margin-top:22px">
+      <li><b>Для режима «Все приложения»</b> один раз нажмите «Установить» — macOS спросит пароль.</li>
+    </ol>
+    <p class="note">Или соберите сами:</p>
+<pre>git clone https://github.com/Zent0rn0/Waypoint.git &amp;&amp; cd Waypoint
+scripts/fetch-vendor.sh   # sing-box и Xray с проверкой SHA-256
+scripts/bundle.sh         # → build/Waypoint.app</pre>
+  </section>
+
+  <section class="wrap">
+    <h2>Честно об ограничениях</h2>
+    <ul class="limits">
+      <li>Серверами самого VPN-клиента Waypoint не управляет и не читает их: клиент для него — один из вариантов выбора.</li>
+      <li>Если сервис блокирует на своей стороне (отказ приходит уже в HTTP), автоматически это не определить — такие сервисы заданы каталогом и сценариями.</li>
+      <li>Голос и игры без имени сайта по умолчанию идут напрямую; сценарий «Голос, звонки и игры» отправляет их через VPN.</li>
+      <li>Клиенты с балансировкой выходят из разных стран: для TikTok закрепите страну правилом «через сервер».</li>
+      <li>Не проверено: смена Wi-Fi, сон и пробуждение, очень долгая работа.</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Zent0rn0 · <a href="https://github.com/Zent0rn0/Waypoint/blob/main/LICENSE">MIT</a></span>
+    <span>Использует <a href="https://github.com/SagerNet/sing-box">sing-box</a> и <a href="https://github.com/XTLS/Xray-core">Xray-core</a></span>
+    <span><a href="https://github.com/Zent0rn0/Waypoint">Исходный код</a> · <a href="https://github.com/Zent0rn0/Waypoint/issues">Сообщить о проблеме</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
