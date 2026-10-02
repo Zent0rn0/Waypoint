@@ -261,10 +261,10 @@
     </div>
     <div class="reveal">
       <ol class="steps">
-        <li><b>Скачайте и распакуйте.</b> Архив <code>Waypoint-…-macos-arm64.zip</code> лежит на <a href="https://github.com/Zent0rn0/Waypoint/releases/latest" style="text-decoration:underline">странице релизов</a>. Перенесите <code>Waypoint.app</code> в папку <code>~/Applications</code>.</li>
+        <li><b>Скачайте образ.</b> Файл <code>Waypoint-…-macos-arm64.dmg</code> лежит на <a href="https://github.com/Zent0rn0/Waypoint/releases/latest" style="text-decoration:underline">странице релизов</a>. Откройте его и перетащите Waypoint в папку «Программы». Там же есть архив <code>.zip</code>, если он удобнее.</li>
         <li><b>Снимите блокировку macOS.</b> Программа не подписана Apple, поэтому система её блокирует. Один раз выполните в Терминале:
-<pre><code>xattr -dr com.apple.quarantine ~/Applications/Waypoint.app</code></pre></li>
-        <li><b>Откройте Waypoint.</b> Чтобы он работал со всеми программами, нажмите «Установить» на главном экране и введите пароль от Mac. Это делается один раз.</li>
+<pre><code>xattr -dr com.apple.quarantine /Applications/Waypoint.app</code></pre></li>
+        <li><b>Откройте Waypoint.</b> Значок появится в строке меню вверху экрана. Чтобы он работал со всеми программами, нажмите «Установить» на главном экране и введите пароль от Mac. Это делается один раз.</li>
       </ol>
       <div class="build">
         <p>Или соберите сами:</p>

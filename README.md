@@ -31,11 +31,13 @@ scripts/bundle.sh                         # собирает build/Waypoint.app 
 cp -R build/Waypoint.app ~/Applications/ && open ~/Applications/Waypoint.app
 ```
 
-Готовая сборка (`Waypoint-<версия>-macos-arm64.zip`) лежит в [Releases](https://github.com/Zent0rn0/Waypoint/releases). Приложение подписано только ad-hoc, поэтому после скачивания macOS его заблокирует: распакуйте, перенесите в `~/Applications` и снимите карантин:
+Готовая сборка лежит в [Releases](https://github.com/Zent0rn0/Waypoint/releases): образ `Waypoint-<версия>-macos-arm64.dmg` (откройте и перетащите Waypoint в «Программы») и тот же `.zip`. Приложение подписано только ad-hoc, поэтому после установки macOS его заблокирует — снимите карантин:
 
 ```bash
-xattr -dr com.apple.quarantine ~/Applications/Waypoint.app
+xattr -dr com.apple.quarantine /Applications/Waypoint.app
 ```
+
+Собрать файлы релиза самому: `scripts/package.sh` (делает `.dmg`, `.zip` и `SHA256SUMS` в `build/`).
 
 Установка системного компонента спрашивает пароль администратора — так и должно быть.
 
@@ -147,7 +149,7 @@ Sources/WaypointCore   Catalog, Policy (сервисы, сценарии, ком
 Sources/waypoint       CLI
 Sources/WaypointApp    приложение: меню-бар + окно (Обзор, Соединения, Приложения, Сценарии, Серверы, Правила, Диагностика, Журнал, Настройки)
 vendor/                sing-box 1.14.2 и Xray-core 26.3.27 — скачиваются scripts/fetch-vendor.sh (в git не входят), SHA-256 закреплены в скрипте и проверяются установщиком
-scripts/               fetch-vendor.sh, bundle.sh, install-daemon.sh, uninstall-daemon.sh, make-icon.swift, make-browser-launcher.sh
+scripts/               fetch-vendor.sh, bundle.sh, package.sh, install-daemon.sh, uninstall-daemon.sh, make-icon.swift, make-browser-launcher.sh
 ```
 
 `swift test --scratch-path /tmp/wp-build` — тесты (в `~/Documents` подпись тестового бандла падает из-за атрибутов iCloud, поэтому сборка во временный каталог).

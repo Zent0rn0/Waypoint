@@ -837,7 +837,9 @@ final class AppModel {
     }
     static func countryName(_ code: String?) -> String {
         guard let code else { return "—" }
-        return Locale(identifier: "ru_RU").localizedString(forRegionCode: code) ?? code
+        // Short everyday names where the official one does not fit a tile or a status line.
+        let short = ["US": "США", "GB": "Великобритания", "AE": "ОАЭ", "KR": "Южная Корея", "CZ": "Чехия", "NL": "Нидерланды"]
+        return short[code.uppercased()] ?? Locale(identifier: "ru_RU").localizedString(forRegionCode: code) ?? code
     }
 
     /// The VPN client's own app (for its icon), if we know it.

@@ -36,8 +36,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleDevelopmentRegion</key><string>ru</string>
   <key>CFBundleLocalizations</key><array><string>ru</string></array>
-  <key>CFBundleShortVersionString</key><string>0.2.0</string>
-  <key>CFBundleVersion</key><string>2</string>
+  <key>CFBundleShortVersionString</key><string>0.3.0</string>
+  <key>CFBundleVersion</key><string>3</string>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>LSUIElement</key><true/>
   <key>NSHighResolutionCapable</key><true/>
@@ -48,5 +48,6 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 PLIST
 
 # Ad-hoc signature: enough for a local build (no Developer ID needed).
+xattr -cr "$APP" 2>/dev/null || true   # Finder/iCloud attributes make codesign refuse the bundle
 codesign --force --sign - --identifier dev.waypoint.app "$APP"
 echo "Готово: $APP  и  build/waypoint"
