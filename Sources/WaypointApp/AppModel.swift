@@ -256,6 +256,8 @@ final class AppModel {
             if settings.communityLists == true { Task { await updateCommunityLists(silent: true) } }
             Task { await refreshStaleSubscriptions() }
             xray.killStale()
+            // Helpers of a server check that was running when the app was last quit or killed would otherwise live forever.
+            Task.detached { _ = runProcessPublic("/usr/bin/pkill", ["-u", NSUserName(), "-f", "(xray|sing-box) run -c .*/waypoint-audit-"]) }
             syncXray()
             let unchecked = Set(servers.filter { $0.checked == nil }.map(\.id))
             if !unchecked.isEmpty { Task { await auditServers(ids: unchecked) } }
