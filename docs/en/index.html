@@ -1,17 +1,16 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Waypoint для macOS</title>
-<meta name="description" content="Программа для Mac, которая сама решает, какие сайты и приложения открывать через VPN, а какие напрямую.">
-<meta property="og:title" content="Waypoint для macOS">
-<meta property="og:description" content="VPN только там, где он нужен.">
-<meta property="og:image" content="img/overview.png">
+<title>Waypoint for macOS</title>
+<meta name="description" content="A Mac app that decides by itself which sites and apps go through your VPN and which go direct.">
+<meta property="og:title" content="Waypoint for macOS">
+<meta property="og:description" content="VPN only where you need it.">
+<meta property="og:image" content="../img/overview.png">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#09090b">
-<link rel="icon" href="img/icon.png">
-<link rel="alternate" hreflang="en" href="en/">
+<link rel="icon" href="../img/icon.png">
 <style>
   :root {
     --bg: #09090b;
@@ -194,21 +193,21 @@
     .hero { padding-top: 56px; }
   }
 </style>
-<script>document.documentElement.classList.add('js');try{if(!/^(ru|uk|be|kk)/i.test(navigator.language||'')&&!sessionStorage.getItem('wp-lang')&&!document.referrer.includes('/en/')){sessionStorage.setItem('wp-lang','1');location.replace('en/')}}catch(e){}</script>
+<script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
 
 <div class="bar" id="bar"><div class="wrap">
   <header class="top">
-    <a class="brand" href="./"><img src="img/icon.png" alt="">Waypoint</a>
+    <a class="brand" href="./"><img src="../img/icon.png" alt="">Waypoint</a>
     <nav>
-      <a href="#how">Зачем</a>
-      <a href="#features">Возможности</a>
-      <a href="#faq">Вопросы</a>
-      <a href="#install">Установка</a>
+      <a href="#how">Why</a>
+      <a href="#features">Features</a>
+      <a href="#faq">FAQ</a>
+      <a href="#install">Install</a>
       <a href="https://github.com/Zent0rn0/Waypoint">GitHub</a>
-      <a href="en/" hreflang="en" lang="en">English</a>
-      <a class="pill dl" href="https://github.com/Zent0rn0/Waypoint/releases/latest">Скачать</a>
+      <a href="../" hreflang="ru" lang="ru">Русский</a>
+      <a class="pill dl" href="https://github.com/Zent0rn0/Waypoint/releases/latest">Download</a>
     </nav>
   </header>
 </div></div>
@@ -216,31 +215,31 @@
 <div class="wrap">
 
   <div class="hero">
-    <a class="badge" href="https://github.com/Zent0rn0/Waypoint/releases/latest"><i></i><span id="ver">Последняя версия</span> · что нового →</a>
-    <h1>VPN только там, где он нужен</h1>
-    <p class="sub">Программа сама решает, какие сайты и приложения открывать через VPN, а какие напрямую. Заблокированное работает, банки и Госуслуги тоже.</p>
+    <a class="badge" href="https://github.com/Zent0rn0/Waypoint/releases/latest"><i></i><span id="ver">Latest version</span> · what’s new →</a>
+    <h1>VPN only where you need it</h1>
+    <p class="sub">The app decides by itself which sites and apps go through your VPN and which go direct. Blocked sites open, and your bank and local services keep working.</p>
     <div class="cta">
-      <a class="btn dl" href="https://github.com/Zent0rn0/Waypoint/releases/latest">Скачать для macOS</a>
-      <a class="link" href="https://github.com/Zent0rn0/Waypoint">Исходный код →</a>
+      <a class="btn dl" href="https://github.com/Zent0rn0/Waypoint/releases/latest">Download for macOS</a>
+      <a class="link" href="https://github.com/Zent0rn0/Waypoint">Source code →</a>
     </div>
-    <p class="note"><span id="dlinfo">Образ .dmg</span> · Mac с Apple Silicon, macOS 14 или новее · бесплатно, открытый код</p>
-    <div class="shot"><img src="img/overview.png" alt="Главное окно Waypoint" width="1800" height="1000"></div>
+    <p class="note"><span id="dlinfo">.dmg image</span> · Apple Silicon Mac, macOS 14 or later · free and open source · interface in Russian</p>
+    <div class="shot"><img src="../img/overview.png" alt="Waypoint main window" width="1800" height="1000"></div>
   </div>
 </div>
 
 <section id="how">
   <div class="wrap">
-    <p class="label reveal">Зачем это нужно</p>
-    <h2 class="reveal">Обычный VPN: всё или ничего</h2>
-    <p class="lead reveal">Пока VPN включён, банки и Госуслуги видят чужой адрес и могут не работать. Выключишь, и заблокированные сайты не открываются. Waypoint выбирает путь отдельно для каждого соединения.</p>
+    <p class="label reveal">Why</p>
+    <h2 class="reveal">A regular VPN is all or nothing</h2>
+    <p class="lead reveal">With the VPN on, your bank and government sites see a foreign address and may refuse to work. Turn it off, and blocked sites stop opening. Waypoint picks the path separately for every connection.</p>
 
     <div class="compare">
       <div class="reveal">
         <div class="panel">
-          <div class="panel-h"><b>Обычный VPN</b><span>всё идёт одним путём</span></div>
+          <div class="panel-h"><b>Regular VPN</b><span>everything takes one path</span></div>
           <ul class="rows">
-            <li><span class="site">sberbank.ru</span><span class="tag vpn">VPN</span><span class="why">чужой адрес, банк может не пустить</span></li>
-            <li><span class="site">gosuslugi.ru</span><span class="tag vpn">VPN</span><span class="why">чужой адрес, вход может не работать</span></li>
+            <li><span class="site">sberbank.ru</span><span class="tag vpn">VPN</span><span class="why">foreign address, the bank may refuse</span></li>
+            <li><span class="site">gosuslugi.ru</span><span class="tag vpn">VPN</span><span class="why">foreign address, sign-in may fail</span></li>
             <li><span class="site">youtube.com</span><span class="tag vpn">VPN</span></li>
             <li><span class="site">telegram.org</span><span class="tag vpn">VPN</span></li>
             <li><span class="site">github.com</span><span class="tag vpn">VPN</span></li>
@@ -249,24 +248,24 @@
       </div>
       <div class="reveal">
         <div class="panel hot">
-          <div class="panel-h"><b>С Waypoint</b><span>у каждого свой путь</span></div>
+          <div class="panel-h"><b>With Waypoint</b><span>each one gets its own path</span></div>
           <ul class="rows stagger">
-            <li><span class="site">sberbank.ru</span><span class="tag direct">Напрямую</span></li>
-            <li><span class="site">gosuslugi.ru</span><span class="tag direct">Напрямую</span></li>
+            <li><span class="site">sberbank.ru</span><span class="tag direct">Direct</span></li>
+            <li><span class="site">gosuslugi.ru</span><span class="tag direct">Direct</span></li>
             <li><span class="site">youtube.com</span><span class="tag vpn">VPN</span></li>
             <li><span class="site">telegram.org</span><span class="tag vpn">VPN</span></li>
-            <li><span class="site">github.com</span><span class="tag direct">Напрямую</span></li>
+            <li><span class="site">github.com</span><span class="tag direct">Direct</span></li>
           </ul>
         </div>
       </div>
     </div>
-    <p class="cap reveal">Пример. Какие сайты заблокированы, зависит от вашего провайдера, Waypoint определяет это сам и запоминает.</p>
+    <p class="cap reveal">An example from Russia, where the app was made. Which sites are blocked depends on your provider; Waypoint finds out by itself and remembers.</p>
 
     <div class="nums reveal">
-      <div class="num"><b>≈ 1 с</b><span>чтобы понять, что сайт заблокирован</span></div>
-      <div class="num"><b>9</b><span>готовых наборов правил</span></div>
-      <div class="num"><b>6</b><span>видов серверов в подписке</span></div>
-      <div class="num"><b>0</b><span>регистраций и аккаунтов</span></div>
+      <div class="num"><b>≈ 1 s</b><span>to notice a site is blocked</span></div>
+      <div class="num"><b>9</b><span>ready-made rule sets</span></div>
+      <div class="num"><b>6</b><span>server types in a subscription</span></div>
+      <div class="num"><b>0</b><span>sign-ups or accounts</span></div>
     </div>
   </div>
 </section>
@@ -274,79 +273,79 @@
 <section id="features">
   <div class="wrap feature">
     <div class="text reveal">
-      <p class="label">Готовые наборы</p>
-      <h2>Включили набор, и правила уже работают</h2>
-      <p>Например, весь TikTok идёт через VPN, чтобы лента была не российской, а банки остаются напрямую. Есть наборы для видео, соцсетей, звонков, нейросетей и публичного Wi-Fi.</p>
+      <p class="label">Rule sets</p>
+      <h2>Turn a set on and the rules just work</h2>
+      <p>For example, all of TikTok goes through the VPN so the feed is not region-locked, while banks stay direct. There are sets for video, social networks, calls, AI tools and public Wi-Fi.</p>
     </div>
-    <div class="fshot reveal"><img src="img/scenarios.png" alt="Экран «Сценарии»: наборы правил с переключателями" loading="lazy" width="1800" height="1160"></div>
+    <div class="fshot reveal"><img src="../img/scenarios.png" alt="Scenarios screen: rule sets with switches" loading="lazy" width="1800" height="1160"></div>
   </div>
 </section>
 
 <section>
   <div class="wrap feature rev">
     <div class="text reveal">
-      <p class="label">Своё правило</p>
-      <h2>Путь для любого сервиса, программы или сайта</h2>
-      <p>Можно выбрать: через VPN, напрямую, заблокировать или через конкретный сервер. «Авто» значит, что решит Waypoint.</p>
-      <p class="small">Можно даже для пары «программа и сайт»: например, Discord целиком через VPN, а один его адрес напрямую.</p>
+      <p class="label">Your own rule</p>
+      <h2>A path for any service, app or site</h2>
+      <p>Choose: through the VPN, direct, blocked, or through one particular server. “Auto” means Waypoint decides.</p>
+      <p class="small">It even works for an app and site pair: for example, all of Discord through the VPN, but one of its addresses direct.</p>
     </div>
-    <div class="fshot reveal"><img src="img/services.png" alt="Экран «Сервисы»: для каждого сервиса выбирается путь" loading="lazy" width="1800" height="1060"></div>
+    <div class="fshot reveal"><img src="../img/services.png" alt="Services screen: a path for every service" loading="lazy" width="1800" height="1060"></div>
   </div>
 </section>
 
 <section>
   <div class="wrap feature">
     <div class="text reveal">
-      <p class="label">Диагностика</p>
-      <h2>Проверка одной кнопкой</h2>
-      <p>Waypoint проходит по всей цепочке: интернет, VPN, страна выхода, популярные сайты, TikTok, Telegram и Discord. Если что-то не так, он напишет, что именно и что с этим делать.</p>
+      <p class="label">Diagnostics</p>
+      <h2>One-button check</h2>
+      <p>Waypoint walks the whole chain: internet, VPN, exit country, popular sites, TikTok, Telegram and Discord. If something is wrong, it says what exactly and what to do about it.</p>
     </div>
-    <div class="fshot reveal"><img src="img/diagnostics.png" alt="Экран «Диагностика»: результаты проверки" loading="lazy" width="1800" height="1212"></div>
+    <div class="fshot reveal"><img src="../img/diagnostics.png" alt="Diagnostics screen: check results" loading="lazy" width="1800" height="1212"></div>
   </div>
 </section>
 
 <section>
   <div class="wrap tray">
     <div class="text reveal">
-      <p class="label">В строке меню</p>
-      <h2>Всё важное под рукой</h2>
-      <p>Значок Waypoint живёт в строке меню вверху экрана. Открывать окно программы не обязательно.</p>
+      <p class="label">In the menu bar</p>
+      <h2>Everything important at hand</h2>
+      <p>The Waypoint icon lives in the menu bar at the top of the screen. You do not have to open the app window.</p>
       <ul class="ticks">
-        <li>Включить или выключить одним переключателем</li>
-        <li>Какие программы сейчас в сети и каким путём идут</li>
-        <li>Последние сайты и почему для них выбран этот путь</li>
-        <li>Поменять путь для программы или сайта в два клика</li>
+        <li>Turn it on or off with one switch</li>
+        <li>Which apps are online right now and which path they take</li>
+        <li>Recent sites and why that path was chosen</li>
+        <li>Change the path for an app or a site in two clicks</li>
       </ul>
     </div>
-    <div class="pic reveal"><img src="img/tray.png" alt="Меню Waypoint в строке меню: статус, программы в сети, последние сайты" loading="lazy" width="713" height="1083"></div>
+    <div class="pic reveal"><img src="../img/tray.png" alt="Waypoint menu bar panel: status, apps online, recent sites" loading="lazy" width="713" height="1083"></div>
   </div>
 </section>
 
 <section>
   <div class="wrap" style="text-align:center">
-    <p class="label reveal">Оформление</p>
-    <h2 class="reveal">Светлая и тёмная тема</h2>
-    <p class="lead reveal" style="margin:0 auto">Переключается одной кнопкой в углу окна или следует за системой.</p>
-    <div class="seg reveal" role="group" aria-label="Тема на снимке">
-      <button type="button" id="t-dark" aria-pressed="true">Тёмная</button>
-      <button type="button" id="t-light" aria-pressed="false">Светлая</button>
+    <p class="label reveal">Appearance</p>
+    <h2 class="reveal">Light and dark theme</h2>
+    <p class="lead reveal" style="margin:0 auto">Switch with one button in the corner of the window, or follow the system.</p>
+    <div class="seg reveal" role="group" aria-label="Theme of the screenshot">
+      <button type="button" id="t-dark" aria-pressed="true">Dark</button>
+      <button type="button" id="t-light" aria-pressed="false">Light</button>
     </div>
     <div class="stack reveal" id="stack">
-      <img src="img/overview.png" alt="Главное окно в тёмной теме" loading="lazy" width="1800" height="1000">
-      <img src="img/overview-light.png" alt="Главное окно в светлой теме" loading="lazy" width="1800" height="1000">
+      <img src="../img/overview.png" alt="Main window in the dark theme" loading="lazy" width="1800" height="1000">
+      <img src="../img/overview-light.png" alt="Main window in the light theme" loading="lazy" width="1800" height="1000">
     </div>
   </div>
 </section>
 
 <section>
   <div class="wrap">
-    <p class="label reveal">Ещё</p>
-    <h2 class="reveal">Что важно знать</h2>
+    <p class="label reveal">More</p>
+    <h2 class="reveal">Good to know</h2>
     <div class="extras">
-      <div class="extra reveal"><h3>Все программы</h3><p>Не только браузер: Telegram, Discord и игры тоже.</p></div>
-      <div class="extra reveal"><h3>Незнакомые сайты</h3><p>Сначала пробует напрямую. Если не открылся, повторяет через VPN и запоминает.</p></div>
-      <div class="extra reveal"><h3>Подписки провайдера</h3><p>Вставьте ссылку, и список серверов будет обновляться сам. Waypoint проверит, какие из них работают, и выберет самые быстрые.</p></div>
-      <div class="extra reveal"><h3>Если что-то сломалось</h3><p>Если VPN отключился или программа закрыта, интернет работает как обычно. Ссылки и серверы хранятся только на вашем Mac.</p></div>
+      <div class="extra reveal"><h3>Every app</h3><p>Not just the browser: Telegram, Discord and games too.</p></div>
+      <div class="extra reveal"><h3>Unknown sites</h3><p>It tries direct first. If the site does not open, it retries through the VPN and remembers.</p></div>
+      <div class="extra reveal"><h3>Provider subscriptions</h3><p>Paste the link and the server list keeps itself up to date. Waypoint checks which servers work and picks the fastest.</p></div>
+      <div class="extra reveal"><h3>If something breaks</h3><p>If the VPN drops or the app is closed, the internet works as usual. Links and servers are stored only on your Mac.</p></div>
     </div>
   </div>
 </section>
@@ -354,19 +353,19 @@
 <section id="install">
   <div class="wrap install">
     <div class="reveal">
-      <p class="label">Установка</p>
-      <h2>Три шага</h2>
-      <p class="muted">Нужен VPN-клиент, который уже стоит на компьютере, например Happ. Waypoint работает поверх него.</p>
+      <p class="label">Install</p>
+      <h2>Three steps</h2>
+      <p class="muted">You need a VPN client that is already on your Mac, for example Happ. Waypoint works on top of it.</p>
     </div>
     <div class="reveal">
       <ol class="steps">
-        <li><b>Скачайте образ.</b> Файл <code id="fname">Waypoint-…-macos-arm64.dmg</code> лежит на <a href="https://github.com/Zent0rn0/Waypoint/releases/latest" style="text-decoration:underline">странице релизов</a>. Откройте его и перетащите Waypoint в папку «Программы». Там же есть архив <code>.zip</code>, если он удобнее.</li>
-        <li><b>Снимите блокировку macOS.</b> Программа не подписана Apple, поэтому система её блокирует. Один раз выполните в Терминале:
+        <li><b>Download the image.</b> The file <code id="fname">Waypoint-…-macos-arm64.dmg</code> is on the <a href="https://github.com/Zent0rn0/Waypoint/releases/latest" style="text-decoration:underline">releases page</a>. Open it and drag Waypoint to Applications. A <code>.zip</code> is there too if you prefer it.</li>
+        <li><b>Remove the macOS block.</b> The app is not signed with an Apple certificate, so the system blocks it. Run this once in Terminal:
 <pre><code>xattr -dr com.apple.quarantine /Applications/Waypoint.app</code></pre></li>
-        <li><b>Откройте Waypoint.</b> Значок появится в строке меню вверху экрана. Чтобы он работал со всеми программами, нажмите «Установить» на главном экране и введите пароль от Mac. Это делается один раз.</li>
+        <li><b>Open Waypoint.</b> Its icon appears in the menu bar. To make it work with every app, press the Install button (“Установить”) on the main screen and enter your Mac password. This is done once.</li>
       </ol>
       <div class="build">
-        <p>Или соберите сами:</p>
+        <p>Or build it yourself:</p>
 <pre><code>git clone https://github.com/Zent0rn0/Waypoint.git
 cd Waypoint
 scripts/fetch-vendor.sh
@@ -378,49 +377,50 @@ scripts/bundle.sh</code></pre>
 
 <section>
   <div class="wrap">
-    <p class="label reveal">Ограничения</p>
-    <h2 class="reveal">Чего он не умеет</h2>
+    <p class="label reveal">Limits</p>
+    <h2 class="reveal">What it cannot do</h2>
     <ul class="limits">
-      <li class="reveal">Не управляет серверами самого VPN-клиента и не читает их. Для Waypoint клиент — один из путей, куда можно отправить трафик.</li>
-      <li class="reveal">Если сайт сам не пускает вас, а не провайдер, автоматически это не определить. Такие сервисы заданы заранее в списках и наборах правил.</li>
-      <li class="reveal">Голос в Discord и игры по умолчанию идут напрямую. Чтобы отправить их через VPN, включите набор «Голос, звонки и игры».</li>
-      <li class="reveal">Не проверялось: смена Wi-Fi, сон и пробуждение компьютера, очень долгая работа.</li>
+      <li class="reveal">It does not manage or read the VPN client’s own servers. To Waypoint the client is one of the paths traffic can take.</li>
+      <li class="reveal">If a site itself refuses you, rather than your provider, that cannot be detected automatically. Such services are listed in advance in the rule sets.</li>
+      <li class="reveal">Discord voice and games go direct by default. To send them through the VPN, turn on the “Voice, calls and games” set.</li>
+      <li class="reveal">Not tested: switching Wi-Fi, sleep and wake, very long sessions.</li>
     </ul>
   </div>
 </section>
 
 <section id="faq">
   <div class="wrap">
-    <p class="label reveal">Вопросы</p>
-    <h2 class="reveal">Коротко о главном</h2>
+    <p class="label reveal">FAQ</p>
+    <h2 class="reveal">The short answers</h2>
     <div class="faq reveal">
-      <details><summary>Это VPN?</summary><p>Нет. Waypoint сам ничего не шифрует и серверов не даёт. Он решает, что отправить через ваш VPN, а что пустить напрямую. Нужен VPN-клиент, который у вас уже есть, или ссылка подписки от провайдера.</p></details>
-      <details><summary>Зачем программе пароль от Mac?</summary><p>Один раз, чтобы поставить системную часть: без неё нельзя работать со всеми программами сразу, только с браузером. Пароль спрашивает само окно macOS, Waypoint его не видит и не хранит.</p></details>
-      <details><summary>Почему macOS пишет, что программа повреждена или от неизвестного разработчика?</summary><p>Программа не подписана платным сертификатом Apple. Это не значит, что с ней что-то не так: код открыт, его можно прочитать и собрать самому. Команда из раздела «Установка» снимает эту блокировку.</p></details>
-      <details><summary>Что если Waypoint зависнет или я его закрою?</summary><p>Интернет продолжит работать как обычно, просто без выбора пути. Системная часть сама выключается при любом сбое и потом пробует включиться снова.</p></details>
-      <details><summary>Мои серверы и ссылка подписки куда-то отправляются?</summary><p>Нет. Они лежат только на вашем Mac. Waypoint обращается к провайдеру подписки, чтобы скачать список серверов, и к самим серверам. Больше никуда.</p></details>
-      <details><summary>Работает на Mac с Intel?</summary><p>Готовая сборка только для Apple Silicon (M1 и новее). На Intel её можно попробовать собрать из исходников, но это не проверялось.</p></details>
-      <details><summary>Как удалить?</summary><p>В программе: «Настройки» → «Системный компонент» → «Удалить…». После этого перенесите Waypoint из «Программ» в Корзину.</p></details>
+      <details><summary>Is this a VPN?</summary><p>No. Waypoint does not encrypt anything itself and provides no servers. It decides what to send through your VPN and what to let go direct. You need a VPN client you already have, or a subscription link from a provider.</p></details>
+      <details><summary>Why does it need my Mac password?</summary><p>Once, to install the system part: without it the app can only work with the browser, not with every app. The password is asked by a macOS dialog; Waypoint never sees or stores it.</p></details>
+      <details><summary>Why does macOS say the app is damaged or from an unknown developer?</summary><p>The app is not signed with a paid Apple certificate. That does not mean something is wrong with it: the code is open, you can read it and build it yourself. The command in the Install section removes the block.</p></details>
+      <details><summary>What if Waypoint hangs or I quit it?</summary><p>The internet keeps working as usual, just without path selection. The system part switches itself off on any failure and then tries to come back.</p></details>
+      <details><summary>Are my servers or subscription link sent anywhere?</summary><p>No. They stay on your Mac. Waypoint contacts the subscription provider to download the server list, and the servers themselves. Nowhere else.</p></details>
+      <details><summary>Does it run on Intel Macs?</summary><p>The ready-made build is for Apple Silicon only (M1 and later). You can try building it from source on Intel, but that has not been tested.</p></details>
+      <details><summary>Is the app in English?</summary><p>Not yet. The interface is in Russian for now; this page and the screenshots show what each screen does.</p></details>
+      <details><summary>How do I uninstall it?</summary><p>In the app open Settings (“Настройки”), find the system component (“Системный компонент”) and press Remove (“Удалить…”). Then move Waypoint from Applications to the Trash.</p></details>
     </div>
   </div>
 </section>
 
 <section class="final">
   <div class="wrap">
-    <h2 class="reveal">Попробуйте</h2>
-    <p class="reveal">Установка занимает пару минут. Если не понравится, удаляется без следов.</p>
+    <h2 class="reveal">Give it a try</h2>
+    <p class="reveal">Installing takes a couple of minutes. If you do not like it, it uninstalls cleanly.</p>
     <div class="cta reveal">
-      <a class="btn dl" href="https://github.com/Zent0rn0/Waypoint/releases/latest">Скачать для macOS</a>
-      <a class="link" href="https://github.com/Zent0rn0/Waypoint">Исходный код →</a>
+      <a class="btn dl" href="https://github.com/Zent0rn0/Waypoint/releases/latest">Download for macOS</a>
+      <a class="link" href="https://github.com/Zent0rn0/Waypoint">Source code →</a>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <span>© 2026 Zent0rn0 · лицензия <a href="https://github.com/Zent0rn0/Waypoint/blob/main/LICENSE">MIT</a></span>
-    <span>Внутри работают <a href="https://github.com/SagerNet/sing-box">sing-box</a> и <a href="https://github.com/XTLS/Xray-core">Xray-core</a></span>
-    <span><a href="https://github.com/Zent0rn0/Waypoint">GitHub</a> · <a href="https://github.com/Zent0rn0/Waypoint/issues">Сообщить о проблеме</a></span>
+    <span>© 2026 Zent0rn0 · <a href="https://github.com/Zent0rn0/Waypoint/blob/main/LICENSE">MIT license</a></span>
+    <span>Powered by <a href="https://github.com/SagerNet/sing-box">sing-box</a> and <a href="https://github.com/XTLS/Xray-core">Xray-core</a></span>
+    <span><a href="https://github.com/Zent0rn0/Waypoint">GitHub</a> · <a href="https://github.com/Zent0rn0/Waypoint/issues">Report a problem</a></span>
   </div>
 </footer>
 
@@ -438,11 +438,11 @@ scripts/bundle.sh</code></pre>
   fetch('https://api.github.com/repos/Zent0rn0/Waypoint/releases/latest').then(function (r) { return r.ok ? r.json() : null; }).then(function (rel) {
     if (!rel) return;
     var v = (rel.tag_name || '').replace(/^v/, '');
-    if (v) document.getElementById('ver').textContent = 'Версия ' + v;
+    if (v) document.getElementById('ver').textContent = 'Version ' + v;
     var dmg = (rel.assets || []).filter(function (a) { return /\.dmg$/.test(a.name); })[0];
     if (dmg) {
       document.querySelectorAll('a.dl').forEach(function (a) { a.href = dmg.browser_download_url; });
-      document.getElementById('dlinfo').textContent = 'Образ .dmg, ' + Math.round(dmg.size / 1048576) + ' МБ';
+      document.getElementById('dlinfo').textContent = '.dmg image, ' + Math.round(dmg.size / 1048576) + ' MB';
       document.getElementById('fname').textContent = dmg.name;
     }
   }).catch(function () {});

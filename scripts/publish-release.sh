@@ -13,6 +13,7 @@ BODY="$(python3 -c 'import json,sys; print(json.dumps({"tag_name":sys.argv[1],"n
 ID="$(api "https://api.github.com/repos/$REPO/releases/tags/$TAG" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("id",""))')"
 if [ -z "$ID" ]; then ID="$(api -X POST "https://api.github.com/repos/$REPO/releases" -d "$BODY" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("id") or sys.exit(str(d)))')"
 else api -X PATCH "https://api.github.com/repos/$REPO/releases/$ID" -d "$BODY" >/dev/null; fi
+[ -n "${NOTES_ONLY:-}" ] && { echo "notes updated"; exit 0; }   # NOTES_ONLY=1: only refresh the description
 for f in "build/Waypoint-$V-macos-arm64.dmg" "build/Waypoint-$V-macos-arm64.zip" build/SHA256SUMS; do
   n="$(basename "$f")"
   api -X POST -H "Content-Type: application/octet-stream" --data-binary @"$f" "https://uploads.github.com/repos/$REPO/releases/$ID/assets?name=$n" \
