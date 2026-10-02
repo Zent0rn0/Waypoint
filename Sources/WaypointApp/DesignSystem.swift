@@ -672,17 +672,38 @@ private struct MeshBackdrop: View {
 }
 
 
-/// The menu bar panel is an NSPanel with square corners and its own background; make it transparent so the rounded content
-/// (and its shadow) is all that shows.
+/// The menu bar panel is an NSPanel with its own background, outline and (smaller) corner radius. Make it transparent and give
+/// every layer of its frame the same radius as our content, so no second rounded shape sticks out around the app's own.
 struct TransparentPanel: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView { let v = NSView(); configure(v); return v }
     func updateNSView(_ v: NSView, context: Context) { configure(v) }
+
     private func configure(_ v: NSView) {
         DispatchQueue.main.async {
             guard let w = v.window else { return }
             w.isOpaque = false
             w.backgroundColor = .clear
             w.hasShadow = true
+            let r = Metrics.popoverRadius
+            func shape(_ view: NSView) {
+                view.wantsLayer = true
+                view.layer?.cornerRadius = r
+                view.layer?.cornerCurve = .continuous
+                view.layer?.masksToBounds = true
+                view.layer?.backgroundColor = NSColor.clear.cgColor
+                view.layer?.borderWidth = 0
+            }
+            var chain: [NSView] = []
+            var cur: NSView? = w.contentView
+            while let c = cur { chain.append(c); cur = c.superview }          // content view up to the theme frame
+            chain.forEach(shape)
+            func strip(_ view: NSView) {                                       // system material / outline views covering the panel
+                for sub in view.subviews {
+                    if sub is NSVisualEffectView, sub.frame.width >= w.frame.width - 2 { sub.isHidden = true }
+                    strip(sub)
+                }
+            }
+            if let top = w.contentView?.superview { strip(top) }
             w.invalidateShadow()
         }
     }
