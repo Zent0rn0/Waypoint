@@ -672,67 +672,40 @@ private struct MeshBackdrop: View {
 }
 
 
-/// The menu bar panel is an NSPanel with its own background, outline and (smaller) corner radius. Make it transparent and give
-/// every layer of its frame the same radius as our content, so no second rounded shape sticks out around the app's own.
+/// The menu bar panel is an NSPanel with its own background and a system shadow that is computed from square window pixels.
+/// Make it fully transparent and shadowless; the app draws the rounded shape and its shadow itself.
 struct TransparentPanel: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSView { let v = NSView(); configure(v); context.coordinator.attach(to: v); return v }
-    func updateNSView(_ v: NSView, context: Context) { configure(v); context.coordinator.attach(to: v) }
-    func makeCoordinator() -> Coordinator { Coordinator() }
-
-    /// The window shadow is computed from the window's pixels; when the content grows or shrinks (a new app, a new site) the old,
-    /// square shadow lingers in the corners until it is invalidated, which looked like a pale square patch behind the rounded panel.
-    final class Coordinator {
-        private var observer: NSObjectProtocol?
-        private weak var window: NSWindow?
-        func attach(to v: NSView) {
-            DispatchQueue.main.async { [weak self, weak v] in
-                guard let self, let w = v?.window, w !== self.window else { return }
-                self.window = w
-                self.observer = NotificationCenter.default.addObserver(forName: NSWindow.didResizeNotification, object: w, queue: .main) { [weak w] _ in
-                    w?.invalidateShadow()
-                    for d in [0.05, 0.3, 1.0] { DispatchQueue.main.asyncAfter(deadline: .now() + d) { w?.invalidateShadow() } }
-                }
-            }
-        }
-        deinit { if let o = observer { NotificationCenter.default.removeObserver(o) } }
-    }
+    func makeNSView(context: Context) -> NSView { let v = NSView(); configure(v); return v }
+    func updateNSView(_ v: NSView, context: Context) { configure(v) }
 
     private func configure(_ v: NSView) {
         DispatchQueue.main.async {
             guard let w = v.window else { return }
             w.isOpaque = false
             w.backgroundColor = .clear
-            w.hasShadow = true
-            let r = Metrics.popoverRadius
-            func shape(_ view: NSView) {
-                view.wantsLayer = true
-                view.layer?.cornerRadius = r
-                view.layer?.cornerCurve = .continuous
-                view.layer?.masksToBounds = true
-                view.layer?.backgroundColor = NSColor.clear.cgColor
-                view.layer?.borderWidth = 0
-            }
-            var chain: [NSView] = []
+            w.hasShadow = false
             var cur: NSView? = w.contentView
-            while let c = cur { chain.append(c); cur = c.superview }          // content view up to the theme frame
-            chain.forEach(shape)
-            func strip(_ view: NSView) {                                       // system material / outline views covering the panel
-                for sub in view.subviews {
-                    if sub is NSVisualEffectView, sub.frame.width >= w.frame.width - 2 { sub.isHidden = true }
-                    strip(sub)
-                }
+            while let c = cur {                                                // content view up to the theme frame
+                c.wantsLayer = true
+                c.layer?.backgroundColor = NSColor.clear.cgColor
+                c.layer?.cornerRadius = 0
+                c.layer?.masksToBounds = false
+                c.layer?.borderWidth = 0
+                cur = c.superview
+            }
+            func strip(_ view: NSView) {                                       // system material covering the panel
+                for sub in view.subviews { if sub is NSVisualEffectView { sub.isHidden = true }; strip(sub) }
             }
             if let top = w.contentView?.superview { strip(top) }
             w.invalidateShadow()
-            for d in [0.05, 0.3, 1.0] { DispatchQueue.main.asyncAfter(deadline: .now() + d) { w.invalidateShadow() } }
             if ProcessInfo.processInfo.environment["WAYPOINT_DUMP_PANEL"] != nil {
-                var out = "window \(type(of: w)) frame \(w.frame) styleMask \(w.styleMask.rawValue)\n"
-                func dump(_ view: NSView, _ d: Int) {
-                    out += String(repeating: "  ", count: d) + "\(type(of: view)) \(view.frame) hidden=\(view.isHidden) radius=\(view.layer?.cornerRadius ?? -1)\n"
-                    for sub in view.subviews { dump(sub, d + 1) }
+                var out = "window opaque=\(w.isOpaque) bg=\(String(describing: w.backgroundColor)) shadow=\(w.hasShadow) frame=\(w.frame) class=\(type(of: w))\n"
+                func dumpL(_ l: CALayer, _ d: Int) {
+                    out += String(repeating: "  ", count: d) + "\(type(of: l)) \(l.frame) bg=\(l.backgroundColor.map { String(describing: $0) } ?? "nil") filters=\(l.backgroundFilters?.count ?? 0) r=\(l.cornerRadius) hidden=\(l.isHidden)\n"
+                    for sub in l.sublayers ?? [] { dumpL(sub, d + 1) }
                 }
-                if let top = w.contentView?.superview { dump(top, 0) }
-                try? out.write(toFile: "/tmp/wp-panel.txt", atomically: true, encoding: .utf8)
+                if let top = w.contentView?.superview?.layer { dumpL(top, 0) }
+                try? out.write(toFile: "/tmp/wp-panel-layers.txt", atomically: true, encoding: .utf8)
             }
         }
     }

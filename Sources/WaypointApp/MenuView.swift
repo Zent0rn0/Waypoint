@@ -101,7 +101,13 @@ struct MenuView: View {
         .fixedSize(horizontal: false, vertical: true)                       // the panel hugs its content
         .background { AmbientBackdrop() }
         .clipShape(RoundedRectangle(cornerRadius: Metrics.popoverRadius, style: .continuous))
-        .background(TransparentPanel())                                     // square panel corners must not show behind the rounded content
+        .overlay(RoundedRectangle(cornerRadius: Metrics.popoverRadius, style: .continuous).strokeBorder(Color.primary.opacity(0.12), lineWidth: 1))
+        // The system window shadow cannot follow a rounded shape (a square pale patch stayed in the corners), so the panel is
+        // transparent and larger than the content, and the shadow is drawn here.
+        .shadow(color: .black.opacity(0.38), radius: 16, y: 7)
+        .padding(.horizontal, 24).padding(.top, 2).padding(.bottom, 30)
+        .background(TransparentPanel())
+        .modifier(ClearWindowContainer())
         .onAppear { model.visible = true; model.refreshCurrentSite(); model.refreshExitCountry(); Task { await model.refresh() } }
         .onDisappear { model.visible = false }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in model.refreshCurrentSite(); Task { await model.refresh() } }
@@ -177,5 +183,12 @@ struct MenuView: View {
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .glassSurface(radius: Metrics.tileRadius)
+    }
+}
+
+/// The menu-bar window style paints its own rounded material behind the content; clear it where the API exists (macOS 15+).
+struct ClearWindowContainer: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 15.0, *) { content.containerBackground(.clear, for: .window) } else { content }
     }
 }
