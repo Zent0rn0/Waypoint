@@ -675,8 +675,27 @@ private struct MeshBackdrop: View {
 /// The menu bar panel is an NSPanel with its own background, outline and (smaller) corner radius. Make it transparent and give
 /// every layer of its frame the same radius as our content, so no second rounded shape sticks out around the app's own.
 struct TransparentPanel: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSView { let v = NSView(); configure(v); return v }
-    func updateNSView(_ v: NSView, context: Context) { configure(v) }
+    func makeNSView(context: Context) -> NSView { let v = NSView(); configure(v); context.coordinator.attach(to: v); return v }
+    func updateNSView(_ v: NSView, context: Context) { configure(v); context.coordinator.attach(to: v) }
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    /// The window shadow is computed from the window's pixels; when the content grows or shrinks (a new app, a new site) the old,
+    /// square shadow lingers in the corners until it is invalidated, which looked like a pale square patch behind the rounded panel.
+    final class Coordinator {
+        private var observer: NSObjectProtocol?
+        private weak var window: NSWindow?
+        func attach(to v: NSView) {
+            DispatchQueue.main.async { [weak self, weak v] in
+                guard let self, let w = v?.window, w !== self.window else { return }
+                self.window = w
+                self.observer = NotificationCenter.default.addObserver(forName: NSWindow.didResizeNotification, object: w, queue: .main) { [weak w] _ in
+                    w?.invalidateShadow()
+                    for d in [0.05, 0.3, 1.0] { DispatchQueue.main.asyncAfter(deadline: .now() + d) { w?.invalidateShadow() } }
+                }
+            }
+        }
+        deinit { if let o = observer { NotificationCenter.default.removeObserver(o) } }
+    }
 
     private func configure(_ v: NSView) {
         DispatchQueue.main.async {
@@ -705,6 +724,16 @@ struct TransparentPanel: NSViewRepresentable {
             }
             if let top = w.contentView?.superview { strip(top) }
             w.invalidateShadow()
+            for d in [0.05, 0.3, 1.0] { DispatchQueue.main.asyncAfter(deadline: .now() + d) { w.invalidateShadow() } }
+            if ProcessInfo.processInfo.environment["WAYPOINT_DUMP_PANEL"] != nil {
+                var out = "window \(type(of: w)) frame \(w.frame) styleMask \(w.styleMask.rawValue)\n"
+                func dump(_ view: NSView, _ d: Int) {
+                    out += String(repeating: "  ", count: d) + "\(type(of: view)) \(view.frame) hidden=\(view.isHidden) radius=\(view.layer?.cornerRadius ?? -1)\n"
+                    for sub in view.subviews { dump(sub, d + 1) }
+                }
+                if let top = w.contentView?.superview { dump(top, 0) }
+                try? out.write(toFile: "/tmp/wp-panel.txt", atomically: true, encoding: .utf8)
+            }
         }
     }
 }
