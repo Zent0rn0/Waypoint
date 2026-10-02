@@ -91,7 +91,22 @@ public final class TunnelDaemon {
     private var flagURL: URL { o.home.appendingPathComponent("tunnel.enabled") }
     private var statusURL: URL { o.state.appendingPathComponent("status.json") }
     private var ruleDir: URL { o.state.appendingPathComponent("rulesets", isDirectory: true) }
-    private static let retryDelays: [TimeInterval] = [60, 300, 1800]
+    /// Pauses after consecutive emergency stops; after the last one the retry interval stays at `steadyRetry` (never gives up for good:
+    /// the stop itself already returns traffic to the normal path, so retrying costs nothing).
+    private static let retryDelays: [TimeInterval] = [30, 120, 300]
+    private static let steadyRetry: TimeInterval = 600
+
+    // MARK: event log (daemon.log): what happened and why, so "sometimes the connection was bad" can be explained afterwards
+
+    private var lastLogged = ""
+    private func log(_ text: String) {
+        let url = o.state.appendingPathComponent("daemon.log")
+        if let s = (try? FileManager.default.attributesOfItem(atPath: url.path))?[.size] as? NSNumber, s.intValue > 1_000_000 { try? FileManager.default.removeItem(at: url) }
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let line = "\(f.string(from: Date())) \(text)\n"
+        if let h = FileHandle(forWritingAtPath: url.path) { h.seekToEndOfFile(); h.write(Data(line.utf8)); try? h.close() }
+        else { FileManager.default.createFile(atPath: url.path, contents: Data(line.utf8)) }
+    }
 
     public func run() -> Never {
         try? FileManager.default.createDirectory(at: ruleDir, withIntermediateDirectories: true)
@@ -109,6 +124,7 @@ public final class TunnelDaemon {
             s.resume(); Self.signalSources.append(s)
         }
         publish(.off, "демон запущен, туннель выключен")
+        log("демон запущен")
         dispatchMain()
     }
     nonisolated(unsafe) private static var signalSources: [DispatchSourceSignal] = []
@@ -146,7 +162,7 @@ public final class TunnelDaemon {
     }
 
     private func evaluate() async {
-        if let pid = childPID, kill(pid, 0) != 0 { childPID = nil; crashes.append(Date()) }        // died on its own
+        if let pid = childPID, kill(pid, 0) != 0 { childPID = nil; crashes.append(Date()); log("sing-box завершился сам (pid \(pid))") }        // died on its own
         let enabled = FileManager.default.fileExists(atPath: flagURL.path)
         if enabled && !flagWasPresent { trips = 0; cooldownUntil = nil; lastError = nil }     // the user switched it on again: fresh start
         flagWasPresent = enabled
@@ -187,7 +203,7 @@ public final class TunnelDaemon {
         writeRuleSets(rules: rules, policy: policy, connections: conn)
 
         if childRunning {
-            if key != structuralKey { stopChild() }                    // Wi‑Fi ↔ Ethernet, VPN reconnected with another utun, servers/lists changed …
+            if key != structuralKey { log("перезапуск sing-box: изменилась сеть, VPN, серверы или списки"); stopChild() }                    // Wi‑Fi ↔ Ethernet, VPN reconnected with another utun, servers/lists changed …
             else { await healthCheck(phys: phys, vpn: vpnIf); return }
         }
         if recentCrashes() >= 3 { trip("sing-box падает слишком часто. Лог: \(o.state.path)/sing-box.log"); return }
@@ -276,6 +292,7 @@ public final class TunnelDaemon {
             FileManager.default.createFile(atPath: o.state.appendingPathComponent("sing-box.log").path, contents: nil)
         }
         guard let pid = launch(config: configURL) else { trip("не удалось запустить sing-box"); return }
+        log("sing-box запущен (pid \(pid)), серверов: \(serverCount), списков: \(listCount)" + (ok.notes.isEmpty ? "" : ", примечание: \(ok.notes.joined(separator: "; "))"))
         childPID = pid; structuralKey = key; startedAt = Date(); healthFailures = 0; lastHealth = .distantPast
         publish(.starting, "запуск туннеля…", physical: phys, vpn: vpn)
     }
@@ -326,11 +343,13 @@ public final class TunnelDaemon {
         guard Date().timeIntervalSince(lastHealth) >= interval, since >= 2 else { return }
         lastHealth = Date()
         let path: Probe.Path = o.tun ? .direct(nil) : .socks(host: "127.0.0.1", port: o.mixedPort)
-        let r = await Probe.tlsHandshake(host: "www.apple.com", path: path, timeoutMs: 4000)
+        var r = await Probe.tlsHandshake(host: "www.apple.com", path: path, timeoutMs: 4000)
+        // One slow or blocked test site is not a broken tunnel: a failure counts only if a second, unrelated site fails too.
+        if case .failure = r { r = await Probe.tlsHandshake(host: "www.cloudflare.com", path: path, timeoutMs: 4000) }
         if case .success(let ms) = r {
             healthFailures = 0
             lastError = nil                                   // recovered: forget the old failure
-            if since > 300 { trips = 0 }
+            if since > 120 { trips = 0 }
             publish(.running, "туннель работает (самотест \(ms) мс)", physical: phys, vpn: vpn)
             return
         }
@@ -341,6 +360,7 @@ public final class TunnelDaemon {
             return
         }
         healthFailures += 1
+        log("самотест не прошёл (\(healthFailures) из 3) при рабочей сети")
         if healthFailures >= 3 { trip("самотест туннеля не прошёл 3 раза подряд при рабочей сети") }
     }
 
@@ -348,15 +368,11 @@ public final class TunnelDaemon {
     private func trip(_ message: String) {
         stopChild()
         trips += 1
-        if trips > Self.retryDelays.count {
-            lastError = message + " — автоповторы исчерпаны, туннель выключен. Включите заново, когда причина устранена."
-            try? FileManager.default.removeItem(at: flagURL)
-            publish(.error, lastError!)
-            return
-        }
-        let delay = Self.retryDelays[trips - 1]
+        let delay = trips <= Self.retryDelays.count ? Self.retryDelays[trips - 1] : Self.steadyRetry
         cooldownUntil = Date().addingTimeInterval(delay)
-        lastError = message + " — сеть возвращена в обычное состояние, повтор через \(Int(delay / 60)) мин"
+        let wait = delay < 120 ? "\(Int(delay)) с" : "\(Int(delay / 60)) мин"
+        lastError = message + " — сеть возвращена в обычное состояние, повтор через \(wait)"
+        log("аварийная остановка №\(trips): \(message); повтор через \(wait)")
         publish(.error, lastError!, retryAt: cooldownUntil)
     }
 
@@ -368,6 +384,9 @@ public final class TunnelDaemon {
                               notes: notes.isEmpty ? nil : notes, retryAt: retryAt,
                               servers: state == .running || state == .starting ? serverCount : nil, lists: state == .running || state == .starting ? listCount : nil)
         if let l = lastPublished, l.state == st.state, l.message == st.message, l.physical == st.physical, l.notes == st.notes, Date().timeIntervalSince(l.updated) < 10 { return }
+        if lastPublished?.state != st.state || (state != .running && lastLogged != st.message) {      // transitions only: «работает (самотест N мс)» changes every 20 s
+            log("состояние: \(st.state.rawValue) — \(st.message)"); lastLogged = st.message
+        }
         lastPublished = st; st.updated = Date()
         let enc = JSONEncoder(); enc.dateEncodingStrategy = .iso8601
         if let d = try? enc.encode(st) {

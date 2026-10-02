@@ -64,7 +64,7 @@ struct ServersPage: View {
             }
 
             if model.servers.contains(where: \.enabled) {
-                Panel(title: "Кто сейчас обслуживает", footer: "Выбор пересматривается каждые 3 минуты по задержке до типичного сайта каждого вида трафика.") {
+                Panel(title: "Кто сейчас обслуживает", footer: "Выбор пересматривается каждые 2 минуты по задержке до типичного сайта каждого вида трафика.") {
                     ForEach(PoolClass.allCases.indexed(by: \.self)) { item in
                         if item.index > 0 { RowSeparator() }
                         let c = item.value, p = model.pools[c]
@@ -176,7 +176,9 @@ struct ServerRow: View {
         var parts = [proto]
         if server.engine == "xray" { parts.append("через Xray") }
         if let w = server.works {
-            if w { parts.append("выход \(server.exit.map { Diagnostics.country($0) } ?? "?")") } else { parts.append("не отвечает") }
+            if w { parts.append("выход \(server.exit.map { Diagnostics.country($0) } ?? "?")") }
+            else { parts.append(ServerHealth.isAutoOff(server) ? "не отвечал, проверю снова сам" : "не отвечает") }
+            if w, (server.fails ?? 0) > 0 { parts.append("был сбой при проверке") }
         } else if russian { parts.append("в России") }
         return parts.joined(separator: " · ")
     }

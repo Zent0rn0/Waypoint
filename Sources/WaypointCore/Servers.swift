@@ -19,6 +19,10 @@ public struct ServerEntry: Codable, Identifiable, Equatable, Sendable {
     public var ms: Int?
     public var exit: String?
     public var checked: Date?
+    /// Consecutive failed checks (nil/0 = none). A single failure never switches a working server off.
+    public var fails: Int?
+    /// Switched off by the checker (not by the user): it is re-checked now and then and comes back by itself.
+    public var autoOff: Bool?
     public init(id: String = UUID().uuidString, name: String, link: String, enabled: Bool = true, source: String? = nil) {
         self.id = id; self.name = name; self.link = link; self.enabled = enabled; self.source = source
     }

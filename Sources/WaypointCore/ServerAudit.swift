@@ -39,6 +39,19 @@ public enum ServerAudit {
         return servers.compactMap { results[$0.id] }
     }
 
+    /// `run`, then once more for whatever failed after a short pause: a single timeout is not a verdict.
+    public static func runWithRetry(servers: [ServerEntry], singBox: URL, xray: URL?, interface: String, directDNS: String,
+                                    pauseSeconds: Double = 4) async -> [Result] {
+        var all = await run(servers: servers, singBox: singBox, xray: xray, interface: interface, directDNS: directDNS)
+        let failedIDs = Set(all.filter { !$0.ok }.map(\.id))
+        guard !failedIDs.isEmpty else { return all }
+        try? await Task.sleep(nanoseconds: UInt64(pauseSeconds * 1_000_000_000))
+        let second = await run(servers: servers.filter { failedIDs.contains($0.id) }, singBox: singBox, xray: xray, interface: interface, directDNS: directDNS)
+        let byID = Dictionary(uniqueKeysWithValues: second.map { ($0.id, $0) })
+        for i in all.indices where !all[i].ok { if let r = byID[all[i].id], r.ok { all[i] = r } }
+        return all
+    }
+
     // MARK: passes
 
     private static func singBoxPass(_ servers: [ServerEntry], binary: URL, interface: String, dns: String, base: UInt16,

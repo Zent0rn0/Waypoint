@@ -140,6 +140,7 @@ public final class XrayRunner: @unchecked Sendable {
     private let lock = NSLock()
     private var proc: Process?
     private var current: Data?
+    private var lastStart = Date.distantPast
 
     public init(binary: URL, dir: URL) {
         self.binary = binary; self.dir = dir
@@ -162,8 +163,10 @@ public final class XrayRunner: @unchecked Sendable {
         let cfg = XrayLink.config(items, interface: interface)
         lock.lock()
         let same = cfg == current && (proc?.isRunning ?? false)
+        // Died on its own (crash, killed): restart it, but never in a tight loop if it keeps dying right away.
+        let crashedJustNow = cfg == current && proc != nil && !(proc?.isRunning ?? false) && Date().timeIntervalSince(lastStart) < 10
         lock.unlock()
-        if same { return }
+        if same || crashedJustNow { return }
         stop()
         guard let cfg, FileManager.default.isExecutableFile(atPath: binary.path) else { return }
         let url = dir.appendingPathComponent("xray.json")
@@ -177,7 +180,7 @@ public final class XrayRunner: @unchecked Sendable {
         p.standardOutput = h; p.standardError = h
         do { try p.run() } catch { return }
         try? String(p.processIdentifier).write(to: pidURL, atomically: true, encoding: .utf8)
-        lock.lock(); proc = p; current = cfg; lock.unlock()
+        lock.lock(); proc = p; current = cfg; lastStart = Date(); lock.unlock()
     }
 
     public func stop() {

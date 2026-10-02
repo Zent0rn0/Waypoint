@@ -238,11 +238,18 @@ public enum TunnelConfig {
             // Loopback must be bound to lo0 explicitly, otherwise `default_interface` would push it out of the physical NIC.
             ["type": "socks", "tag": "waypoint-race", "server": "127.0.0.1", "server_port": Int(p.racePort), "version": "5", "bind_interface": "lo0"],
         ]
-        for s in servers { var o = s.server.outbound; o["tag"] = s.tag; outbounds.append(o) }
+        for s in servers {
+            var o = s.server.outbound; o["tag"] = s.tag
+            // A dead address must fail in seconds, not minutes, so the pool can pick another server (not for QUIC-based types).
+            if let t = o["type"] as? String, ["vless", "trojan", "shadowsocks", "vmess", "http"].contains(t) { o["connect_timeout"] = "8s" }
+            outbounds.append(o)
+        }
         if hasPool {
             for c in PoolClass.allCases {
                 outbounds.append(["type": "urltest", "tag": "pool-\(c.rawValue)", "outbounds": ["via-happ"] + servers.map(\.tag),
-                                  "url": c.testURL, "interval": "3m", "tolerance": 50, "idle_timeout": "30m"])
+                                  "url": c.testURL, "interval": "2m", "tolerance": 100, "idle_timeout": "30m",
+                                  // when the chosen server changes, connections stuck on the old one are reset so apps reconnect at once
+                                  "interrupt_exist_connections": true])
             }
         }
 

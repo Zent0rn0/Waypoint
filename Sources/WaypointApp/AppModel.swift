@@ -231,6 +231,11 @@ final class AppModel {
         // Slow loop: system state (scutil, networksetup). Fast loop: live connections — short flows must not slip between polls.
         Task { while true { await refresh(); try? await Task.sleep(nanoseconds: visible ? 1_500_000_000 : 4_000_000_000) } }
         Task { while true { await pollAPI(); try? await Task.sleep(nanoseconds: 1_000_000_000) } }
+        // Watchdog for the Xray helper: restarts it if it died and re-binds it when the network interface changed
+        // (Wi-Fi ↔ cable, sleep/wake). Without it every Xray-carried server stayed dead until the next manual action.
+        Task { while true { try? await Task.sleep(nanoseconds: 5_000_000_000); if running { syncXray() } } }
+        // Servers the checker switched off (or that failed lately) get another look every 20 minutes and return by themselves.
+        Task { try? await Task.sleep(nanoseconds: 90_000_000_000); while true { await recheckServers(); try? await Task.sleep(nanoseconds: 1_200_000_000_000) } }
         Task { [weak self] in
             let apps = await Task.detached { Self.scanApps() }.value
             self?.installedApps = apps
@@ -560,29 +565,34 @@ final class AppModel {
 
     /// Check servers with both engines; pick the engine that works, record the real exit country. On a server's first
     /// check, switch it off if it does not work or (in the Russian region) exits inside Russia; later it is the user's choice.
-    func auditServers(ids: Set<String>? = nil) async {
+    /// Quiet re-check of servers that are off because of the checker, or failed recently.
+    func recheckServers() async {
+        guard running, !auditRunning, upstreamOK else { return }
+        let ids = Set(ServerHealth.needsRecheck(servers).map(\.id))
+        if !ids.isEmpty { await auditServers(ids: ids, quiet: true) }
+    }
+
+    func auditServers(ids: Set<String>? = nil, quiet: Bool = false) async {
         guard !auditRunning, !servers.isEmpty else { return }
         auditRunning = true
         defer { auditRunning = false }
         let phys = engine.network.physical?.name ?? "en0"
         let target = servers.filter { ids == nil || ids!.contains($0.id) }
         let dns = await Task.detached { NetworkFacts.directDNS(interface: phys) }.value
-        let results = await ServerAudit.run(servers: target, singBox: Self.helperBinary("sing-box"), xray: Self.helperBinary("xray"), interface: phys, directDNS: dns)
-        let byID = Dictionary(uniqueKeysWithValues: results.map { ($0.id, $0) })
-        let russia = engine.settings.region == .russia
-        for i in servers.indices {
-            guard let r = byID[servers[i].id] else { continue }
-            let first = servers[i].checked == nil
-            servers[i].checked = Date(); servers[i].works = r.ok; servers[i].ms = r.ms
-            if let c = r.country { servers[i].exit = c }
-            if r.ok { servers[i].engine = r.engine == "xray" ? "xray" : nil }
-            if first { servers[i].enabled = r.ok && !(russia && r.country == "RU") }
-        }
+        let results = await ServerAudit.runWithRetry(servers: target, singBox: Self.helperBinary("sing-box"), xray: Self.helperBinary("xray"), interface: phys, directDNS: dns)
+        let summary = ServerHealth.apply(results, to: &servers, russia: engine.settings.region == .russia)
         ServerStore.assignPorts(&servers)
         ServerStore.save(servers, to: engine.supportDirectory)
         auditAt = Date()
         syncXray()
-        flash("Проверено: работают \(results.filter(\.ok).count) из \(results.count)")
+        if summary.ignoredAsNetworkProblem {
+            flash("Почти все серверы не ответили сразу — похоже на проблему с сетью. Ничего не выключено, проверю позже")
+        } else if !quiet || !summary.recovered.isEmpty || !summary.switchedOff.isEmpty {
+            var text = "Проверено: работают \(summary.ok) из \(summary.total)"
+            if !summary.recovered.isEmpty { text += " · вернулись: \(summary.recovered.count)" }
+            if !summary.switchedOff.isEmpty { text += " · выключено: \(summary.switchedOff.count)" }
+            flash(text)
+        }
     }
 
     // MARK: subscriptions
