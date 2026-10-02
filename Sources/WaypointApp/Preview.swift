@@ -61,3 +61,19 @@ func snapshotWindow(model: AppModel, to dir: String) {
         print("snapshots done")
     }
 }
+
+/// `Waypoint --menu-window`: the menu bar popover in an ordinary window, so it can be looked at and screenshotted.
+@MainActor
+func showMenuInWindow(model: AppModel) {
+    let host = NSHostingController(rootView: MenuView().environment(model).background(AmbientBackdrop()))
+    let w = NSWindow(contentViewController: host)
+    w.title = "Waypoint — меню"
+    w.styleMask = [.titled, .closable]
+    w.isReleasedWhenClosed = false
+    w.center()
+    NSApp.setActivationPolicy(.regular)
+    w.makeKeyAndOrderFront(nil)
+    NSApp.activate(ignoringOtherApps: true)
+    menuWindowKeepAlive = w
+}
+@MainActor private var menuWindowKeepAlive: NSWindow?

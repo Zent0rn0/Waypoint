@@ -18,6 +18,7 @@ struct WaypointApp: App {
         let screenArg = showArg.flatMap { i in i + 1 < args.count ? Screen(rawValue: args[i + 1]) : nil }
         NotificationCenter.default.addObserver(forName: NSApplication.didFinishLaunchingNotification, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated {
+                if args.contains("--menu-window") { showMenuInWindow(model: m); return }   // development aid: the tray popover as a normal window
                 if let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count { snapshotWindow(model: m, to: args[i + 1]); return }
                 if showArg != nil || m.showOnboarding { MainWindow.shared.show(model: m, screen: screenArg) }
             }
