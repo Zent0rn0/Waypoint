@@ -61,20 +61,6 @@ struct MenuView: View {
                 }
             }
 
-            if let host = model.currentHost {
-                module {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text("Сайт в браузере").font(.system(size: 13, weight: .semibold))
-                            Spacer()
-                            if let d = model.currentDecision { RouteBadge(route: d.action == .race ? "direct" : d.action.rawValue) }
-                        }
-                        Text(host).font(.system(.callout, design: .monospaced)).lineLimit(1).truncationMode(.middle)
-                        RoutePicker(selection: Binding(get: { model.currentIsPinned }, set: { model.pin(host, $0) })).frame(maxWidth: .infinity)
-                    }
-                }
-            }
-
             module {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Последние сайты").font(.system(size: 13, weight: .semibold))
@@ -89,7 +75,7 @@ struct MenuView: View {
             if let t = model.toast { Text(t).font(.caption).foregroundStyle(Color.wpWarn).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 4) }
 
             HStack {
-                Button { MainWindow.shared.show(model: model) } label: { Label("Открыть Waypoint…", systemImage: "macwindow").font(.callout) }.buttonStyle(.borderless)
+                Button { TrayController.shared.hide(); MainWindow.shared.show(model: model) } label: { Label("Открыть Waypoint…", systemImage: "macwindow").font(.callout) }.buttonStyle(.borderless)
                 Spacer()
                 Button("Выйти") { NSApp.terminate(nil) }.buttonStyle(.borderless).font(.callout).foregroundStyle(.secondary)
             }
