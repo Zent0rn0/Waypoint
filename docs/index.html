@@ -35,7 +35,10 @@
   .wrap { max-width: 1080px; margin: 0 auto; padding: 0 28px; }
 
   /* header */
-  .top { display: flex; align-items: center; justify-content: space-between; height: 76px; }
+  .bar { position: sticky; top: 0; z-index: 20; background: rgba(9,9,11,.72); backdrop-filter: saturate(160%) blur(18px); -webkit-backdrop-filter: saturate(160%) blur(18px);
+         border-bottom: 1px solid transparent; transition: border-color .2s ease; }
+  .bar.scrolled { border-bottom-color: var(--line); }
+  .top { display: flex; align-items: center; justify-content: space-between; height: 64px; }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: -.01em; }
   .brand img { width: 26px; height: 26px; }
   .top nav { display: flex; align-items: center; gap: 26px; font-size: 15px; color: var(--muted); }
@@ -57,6 +60,52 @@
   .link { color: var(--muted); font-size: 17px; }
   .link:hover { color: var(--text); }
   .note { color: var(--dim); font-size: 14px; margin: 20px 0 0; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line-2);
+           color: var(--muted); font-size: 13.5px; margin: 0 0 26px; }
+  .badge:hover { color: var(--text); border-color: rgba(255,255,255,.28); }
+  .badge i { width: 7px; height: 7px; border-radius: 50%; background: var(--direct); box-shadow: 0 0 0 4px rgba(60,207,106,.16); }
+
+  /* theme switcher */
+  .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); margin: 30px 0 0; }
+  .seg button { all: unset; cursor: pointer; padding: 7px 18px; border-radius: 999px; font-size: 14.5px; color: var(--muted); }
+  .seg button[aria-pressed="true"] { background: rgba(255,255,255,.14); color: var(--text); font-weight: 600; }
+  .seg button:focus-visible { outline: 2px solid var(--vpn); outline-offset: 2px; }
+  .stack { position: relative; margin: 40px auto 0; max-width: 1040px; }
+  .stack img { border-radius: 20px; box-shadow: 0 0 0 1px var(--line-2), 0 50px 90px -40px rgba(0,0,0,.9); transition: opacity .45s ease; }
+  .stack img + img { position: absolute; inset: 0; opacity: 0; }
+  .stack.light img + img { opacity: 1; }
+
+  /* tray */
+  .tray { display: grid; grid-template-columns: 7fr 5fr; gap: 64px; align-items: center; }
+  .tray .pic { display: flex; justify-content: center; }
+  .tray .pic img { width: 100%; max-width: 330px; filter: drop-shadow(0 30px 50px rgba(0,0,0,.7)); }
+  .tray p { color: var(--muted); }
+  ul.ticks { list-style: none; margin: 22px 0 0; padding: 0; }
+  ul.ticks li { position: relative; padding: 0 0 12px 30px; color: var(--muted); font-size: 17px; }
+  ul.ticks li::before { content: ""; position: absolute; left: 4px; top: 9px; width: 12px; height: 7px; border-left: 2px solid var(--direct); border-bottom: 2px solid var(--direct); transform: rotate(-45deg); }
+
+  /* numbers */
+  .nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 110px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .num { padding: 30px 8px; text-align: center; border-left: 1px solid var(--line); }
+  .num:first-child { border-left: 0; }
+  .num b { display: block; font-size: 34px; letter-spacing: -.03em; font-weight: 680; }
+  .num span { color: var(--dim); font-size: 14.5px; }
+
+  /* faq */
+  .faq { max-width: 800px; margin-top: 36px; }
+  .faq details { border-top: 1px solid var(--line); }
+  .faq details:last-child { border-bottom: 1px solid var(--line); }
+  .faq summary { list-style: none; cursor: pointer; padding: 20px 34px 20px 0; position: relative; font-size: 18.5px; font-weight: 600; letter-spacing: -.01em; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; position: absolute; right: 4px; top: 16px; font-size: 24px; font-weight: 400; color: var(--dim); transition: transform .2s ease; }
+  .faq details[open] summary::after { transform: rotate(45deg); }
+  .faq summary:focus-visible { outline: 2px solid var(--vpn); outline-offset: 2px; }
+  .faq p { color: var(--muted); margin: 0 0 20px; max-width: 700px; }
+
+  /* final call */
+  .final { text-align: center; }
+  .final h2 { margin-bottom: 14px; }
+  .final p { color: var(--muted); margin: 0 auto 30px; max-width: 520px; }
 
   .shot { position: relative; margin: 72px auto 0; max-width: 1040px; }
   .shot::before { content: ""; position: absolute; left: 6%; right: 6%; top: -6%; height: 60%; z-index: -1; pointer-events: none;
@@ -134,7 +183,10 @@
 
   @media (max-width: 900px) {
     section { padding-top: 96px; }
-    .compare, .feature, .feature.rev, .install, .extras { grid-template-columns: 1fr; }
+    .compare, .feature, .feature.rev, .install, .extras, .tray { grid-template-columns: 1fr; }
+    .tray { gap: 36px; }
+    .nums { grid-template-columns: 1fr 1fr; margin-top: 72px; }
+    .num:nth-child(3) { border-left: 0; } .num:nth-child(n+3) { border-top: 1px solid var(--line); }
     .feature, .install { gap: 36px; }
     .feature.rev .text { order: 0; }
     .top nav a:not(.pill) { display: none; }
@@ -145,26 +197,31 @@
 </head>
 <body>
 
-<div class="wrap">
+<div class="bar" id="bar"><div class="wrap">
   <header class="top">
     <a class="brand" href="./"><img src="img/icon.png" alt="">Waypoint</a>
     <nav>
-      <a href="#how">Как это работает</a>
+      <a href="#how">Зачем</a>
+      <a href="#features">Возможности</a>
+      <a href="#faq">Вопросы</a>
       <a href="#install">Установка</a>
       <a href="https://github.com/Zent0rn0/Waypoint">GitHub</a>
-      <a class="pill" href="https://github.com/Zent0rn0/Waypoint/releases/latest">Скачать</a>
+      <a class="pill dl" href="https://github.com/Zent0rn0/Waypoint/releases/latest">Скачать</a>
     </nav>
   </header>
+</div></div>
+
+<div class="wrap">
 
   <div class="hero">
-    <p class="eyebrow">Для macOS</p>
+    <a class="badge" href="https://github.com/Zent0rn0/Waypoint/releases/latest"><i></i><span id="ver">Последняя версия</span> · что нового →</a>
     <h1>VPN только там, где он нужен</h1>
     <p class="sub">Программа сама решает, какие сайты и приложения открывать через VPN, а какие напрямую. Заблокированное работает, банки и Госуслуги тоже.</p>
     <div class="cta">
-      <a class="btn" href="https://github.com/Zent0rn0/Waypoint/releases/latest">Скачать для macOS</a>
+      <a class="btn dl" href="https://github.com/Zent0rn0/Waypoint/releases/latest">Скачать для macOS</a>
       <a class="link" href="https://github.com/Zent0rn0/Waypoint">Исходный код →</a>
     </div>
-    <p class="note">Mac с Apple Silicon, macOS 14 или новее · бесплатно, лицензия MIT</p>
+    <p class="note"><span id="dlinfo">Образ .dmg</span> · Mac с Apple Silicon, macOS 14 или новее · бесплатно, открытый код</p>
     <div class="shot"><img src="img/overview.png" alt="Главное окно Waypoint" width="1800" height="1000"></div>
   </div>
 </div>
@@ -202,10 +259,17 @@
       </div>
     </div>
     <p class="cap reveal">Пример. Какие сайты заблокированы, зависит от вашего провайдера, Waypoint определяет это сам и запоминает.</p>
+
+    <div class="nums reveal">
+      <div class="num"><b>≈ 1 с</b><span>чтобы понять, что сайт заблокирован</span></div>
+      <div class="num"><b>9</b><span>готовых наборов правил</span></div>
+      <div class="num"><b>6</b><span>видов серверов в подписке</span></div>
+      <div class="num"><b>0</b><span>регистраций и аккаунтов</span></div>
+    </div>
   </div>
 </section>
 
-<section>
+<section id="features">
   <div class="wrap feature">
     <div class="text reveal">
       <p class="label">Готовые наборы</p>
@@ -240,6 +304,39 @@
 </section>
 
 <section>
+  <div class="wrap tray">
+    <div class="text reveal">
+      <p class="label">В строке меню</p>
+      <h2>Всё важное под рукой</h2>
+      <p>Значок Waypoint живёт в строке меню вверху экрана. Открывать окно программы не обязательно.</p>
+      <ul class="ticks">
+        <li>Включить или выключить одним переключателем</li>
+        <li>Какие программы сейчас в сети и каким путём идут</li>
+        <li>Последние сайты и почему для них выбран этот путь</li>
+        <li>Поменять путь для программы или сайта в два клика</li>
+      </ul>
+    </div>
+    <div class="pic reveal"><img src="img/tray.png" alt="Меню Waypoint в строке меню: статус, программы в сети, последние сайты" loading="lazy" width="713" height="1083"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap" style="text-align:center">
+    <p class="label reveal">Оформление</p>
+    <h2 class="reveal">Светлая и тёмная тема</h2>
+    <p class="lead reveal" style="margin:0 auto">Переключается одной кнопкой в углу окна или следует за системой.</p>
+    <div class="seg reveal" role="group" aria-label="Тема на снимке">
+      <button type="button" id="t-dark" aria-pressed="true">Тёмная</button>
+      <button type="button" id="t-light" aria-pressed="false">Светлая</button>
+    </div>
+    <div class="stack reveal" id="stack">
+      <img src="img/overview.png" alt="Главное окно в тёмной теме" loading="lazy" width="1800" height="1000">
+      <img src="img/overview-light.png" alt="Главное окно в светлой теме" loading="lazy" width="1800" height="1000">
+    </div>
+  </div>
+</section>
+
+<section>
   <div class="wrap">
     <p class="label reveal">Ещё</p>
     <h2 class="reveal">Что важно знать</h2>
@@ -261,7 +358,7 @@
     </div>
     <div class="reveal">
       <ol class="steps">
-        <li><b>Скачайте образ.</b> Файл <code>Waypoint-…-macos-arm64.dmg</code> лежит на <a href="https://github.com/Zent0rn0/Waypoint/releases/latest" style="text-decoration:underline">странице релизов</a>. Откройте его и перетащите Waypoint в папку «Программы». Там же есть архив <code>.zip</code>, если он удобнее.</li>
+        <li><b>Скачайте образ.</b> Файл <code id="fname">Waypoint-…-macos-arm64.dmg</code> лежит на <a href="https://github.com/Zent0rn0/Waypoint/releases/latest" style="text-decoration:underline">странице релизов</a>. Откройте его и перетащите Waypoint в папку «Программы». Там же есть архив <code>.zip</code>, если он удобнее.</li>
         <li><b>Снимите блокировку macOS.</b> Программа не подписана Apple, поэтому система её блокирует. Один раз выполните в Терминале:
 <pre><code>xattr -dr com.apple.quarantine /Applications/Waypoint.app</code></pre></li>
         <li><b>Откройте Waypoint.</b> Значок появится в строке меню вверху экрана. Чтобы он работал со всеми программами, нажмите «Установить» на главном экране и введите пароль от Mac. Это делается один раз.</li>
@@ -290,6 +387,33 @@ scripts/bundle.sh</code></pre>
   </div>
 </section>
 
+<section id="faq">
+  <div class="wrap">
+    <p class="label reveal">Вопросы</p>
+    <h2 class="reveal">Коротко о главном</h2>
+    <div class="faq reveal">
+      <details><summary>Это VPN?</summary><p>Нет. Waypoint сам ничего не шифрует и серверов не даёт. Он решает, что отправить через ваш VPN, а что пустить напрямую. Нужен VPN-клиент, который у вас уже есть, или ссылка подписки от провайдера.</p></details>
+      <details><summary>Зачем программе пароль от Mac?</summary><p>Один раз, чтобы поставить системную часть: без неё нельзя работать со всеми программами сразу, только с браузером. Пароль спрашивает само окно macOS, Waypoint его не видит и не хранит.</p></details>
+      <details><summary>Почему macOS пишет, что программа повреждена или от неизвестного разработчика?</summary><p>Программа не подписана платным сертификатом Apple. Это не значит, что с ней что-то не так: код открыт, его можно прочитать и собрать самому. Команда из раздела «Установка» снимает эту блокировку.</p></details>
+      <details><summary>Что если Waypoint зависнет или я его закрою?</summary><p>Интернет продолжит работать как обычно, просто без выбора пути. Системная часть сама выключается при любом сбое и потом пробует включиться снова.</p></details>
+      <details><summary>Мои серверы и ссылка подписки куда-то отправляются?</summary><p>Нет. Они лежат только на вашем Mac. Waypoint обращается к провайдеру подписки, чтобы скачать список серверов, и к самим серверам. Больше никуда.</p></details>
+      <details><summary>Работает на Mac с Intel?</summary><p>Готовая сборка только для Apple Silicon (M1 и новее). На Intel её можно попробовать собрать из исходников, но это не проверялось.</p></details>
+      <details><summary>Как удалить?</summary><p>В программе: «Настройки» → «Системный компонент» → «Удалить…». После этого перенесите Waypoint из «Программ» в Корзину.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <h2 class="reveal">Попробуйте</h2>
+    <p class="reveal">Установка занимает пару минут. Если не понравится, удаляется без следов.</p>
+    <div class="cta reveal">
+      <a class="btn dl" href="https://github.com/Zent0rn0/Waypoint/releases/latest">Скачать для macOS</a>
+      <a class="link" href="https://github.com/Zent0rn0/Waypoint">Исходный код →</a>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
     <span>© 2026 Zent0rn0 · лицензия <a href="https://github.com/Zent0rn0/Waypoint/blob/main/LICENSE">MIT</a></span>
@@ -299,6 +423,28 @@ scripts/bundle.sh</code></pre>
 </footer>
 
 <script>
+  // sticky header line
+  var bar = document.getElementById('bar');
+  addEventListener('scroll', function () { bar.classList.toggle('scrolled', scrollY > 8); }, { passive: true });
+
+  // theme switcher on the screenshot
+  var stack = document.getElementById('stack'), td = document.getElementById('t-dark'), tl = document.getElementById('t-light');
+  function theme(light) { stack.classList.toggle('light', light); td.setAttribute('aria-pressed', String(!light)); tl.setAttribute('aria-pressed', String(light)); }
+  td.addEventListener('click', function () { theme(false); }); tl.addEventListener('click', function () { theme(true); });
+
+  // latest release: version in the badge and a direct link to the .dmg (falls back to the releases page)
+  fetch('https://api.github.com/repos/Zent0rn0/Waypoint/releases/latest').then(function (r) { return r.ok ? r.json() : null; }).then(function (rel) {
+    if (!rel) return;
+    var v = (rel.tag_name || '').replace(/^v/, '');
+    if (v) document.getElementById('ver').textContent = 'Версия ' + v;
+    var dmg = (rel.assets || []).filter(function (a) { return /\.dmg$/.test(a.name); })[0];
+    if (dmg) {
+      document.querySelectorAll('a.dl').forEach(function (a) { a.href = dmg.browser_download_url; });
+      document.getElementById('dlinfo').textContent = 'Образ .dmg, ' + Math.round(dmg.size / 1048576) + ' МБ';
+      document.getElementById('fname').textContent = dmg.name;
+    }
+  }).catch(function () {});
+
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
