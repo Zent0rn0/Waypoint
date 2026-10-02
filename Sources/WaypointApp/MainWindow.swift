@@ -43,9 +43,20 @@ final class MainWindow: NSObject, NSWindowDelegate {
             var f = w.frame; f.size.width = Self.width; w.setFrame(f, display: true)
         }
         (window as? FixedHeightWindow)?.lockedHeight = window?.frame.height
+        let wasAccessory = NSApp.activationPolicy() != .regular
         NSApp.setActivationPolicy(.regular)
+        NSApp.presentationOptions = []
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+        // macOS does not bring up the menu bar of an app that has just switched from "menu bar only" to a regular app:
+        // the bar stays empty/hidden until the app is activated again. Hand focus to the Dock for a moment and take it back.
+        if wasAccessory {
+            NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first?.activate()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+                NSApp.activate(ignoringOtherApps: true)
+                self?.window?.makeKeyAndOrderFront(nil)
+            }
+        }
         model.visible = true
     }
 
