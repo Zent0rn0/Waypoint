@@ -63,9 +63,11 @@ struct MenuView: View {
 
             module {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Сценарии").font(.caption).foregroundStyle(.secondary)
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 6), GridItem(.flexible(), spacing: 6)], spacing: 6) {
-                        ForEach(["tiktok", "media", "social", "ai", "voice", "strict-ru"].compactMap(Playbook.playbook)) { pb in chip(pb) }
+                    Text("Последние сайты").font(.caption).foregroundStyle(.secondary)
+                    if recentSites.isEmpty {
+                        Text("Когда вы откроете незнакомый сайт, он появится здесь с выбранным путём.").font(.callout).foregroundStyle(.secondary)
+                    } else {
+                        ForEach(recentSites, id: \.id) { e in siteRow(e) }
                     }
                 }
             }
@@ -113,25 +115,36 @@ struct MenuView: View {
         }
     }
 
-    /// Short names for the tiles (the full ones are in the tooltip and on the Scenarios page).
-    private static let shortTitle = ["tiktok": "TikTok", "media": "Видео и музыка", "social": "Соцсети", "ai": "AI и разработка",
-                                     "voice": "Голос и игры", "strict-ru": "Банки напрямую"]
-
-    private func chip(_ pb: Playbook) -> some View {
-        let on = model.isActive(pb.id)
-        return Button { model.setPlaybook(pb.id, !on) } label: {
-            HStack(spacing: 6) {
-                Image(systemName: pb.icon).font(.system(size: 12, weight: .medium)).foregroundStyle(on ? pb.color : Color.secondary).frame(width: 16)
-                Text(Self.shortTitle[pb.id] ?? pb.title).font(.caption).lineLimit(1)
-                Spacer(minLength: 0)
-                if on { Image(systemName: "checkmark").font(.system(size: 9, weight: .bold)).foregroundStyle(pb.color) }
-            }
-            .padding(.horizontal, 9).frame(height: 30)
-            .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(on ? pb.color.opacity(0.18) : Color.primary.opacity(0.06)))
-            .contentShape(Rectangle())
+    /// The latest checked sites, one line per site (not per request).
+    private var recentSites: [RouteEvent] {
+        var seen = Set<String>(), out: [RouteEvent] = []
+        for e in model.events {
+            let site = isIPLiteral(e.host) ? e.host : registrableDomain(e.host)
+            if seen.insert(site).inserted { out.append(e) }
+            if out.count == 5 { break }
         }
-        .buttonStyle(.plain)
-        .help(pb.title + " — " + pb.subtitle)
+        return out
+    }
+
+    private func siteRow(_ e: RouteEvent) -> some View {
+        let site = isIPLiteral(e.host) ? e.host : registrableDomain(e.host)
+        let why: String
+        switch e.source {
+        case "manual": why = "ваше правило или сценарий"
+        case "learned": why = "выучено раньше"
+        case "starter": why = "встроенная подсказка"
+        case "local": why = "локальная сеть"
+        default: why = "проверка: \(e.ms) мс"
+        }
+        return HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(site).font(.system(.callout, design: .monospaced)).lineLimit(1).truncationMode(.middle)
+                Text(why).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+            }
+            Spacer(minLength: 6)
+            RouteBadge(route: e.route)
+            if !isIPLiteral(e.host) { TargetMenu(current: model.target(app: nil, site: site)) { model.setTarget(app: nil, site: site, $0) } }
+        }
     }
 
     /// Which server the general pool is using right now.
