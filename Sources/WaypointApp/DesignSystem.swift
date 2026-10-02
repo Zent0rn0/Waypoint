@@ -12,7 +12,6 @@ enum Metrics {
     static let maxColumn: CGFloat = 760      // upper bound when the window is made wider (tiling, full-screen apps)
     static let groupRadius: CGFloat = 20       // grouped rows, tables
     static let cardRadius: CGFloat = 30       // hero and page headers
-    static let popoverRadius: CGFloat = 32    // the tray panel (modules 22 + its 10 pt padding)
     static let tileRadius: CGFloat = 22       // tiles, tray modules, summary strips
     static let rowInset: CGFloat = 12
     static let tile: CGFloat = 26
@@ -666,46 +665,6 @@ private struct MeshBackdrop: View {
                 }
                 .frame(width: g.size.width, height: g.size.height)
                 .clipped()
-            }
-        }
-    }
-}
-
-
-/// The menu bar panel is an NSPanel with its own background and a system shadow that is computed from square window pixels.
-/// Make it fully transparent and shadowless; the app draws the rounded shape and its shadow itself.
-struct TransparentPanel: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSView { let v = NSView(); configure(v); return v }
-    func updateNSView(_ v: NSView, context: Context) { configure(v) }
-
-    private func configure(_ v: NSView) {
-        DispatchQueue.main.async {
-            guard let w = v.window else { return }
-            w.isOpaque = false
-            w.backgroundColor = .clear
-            w.hasShadow = false
-            var cur: NSView? = w.contentView
-            while let c = cur {                                                // content view up to the theme frame
-                c.wantsLayer = true
-                c.layer?.backgroundColor = NSColor.clear.cgColor
-                c.layer?.cornerRadius = 0
-                c.layer?.masksToBounds = false
-                c.layer?.borderWidth = 0
-                cur = c.superview
-            }
-            func strip(_ view: NSView) {                                       // system material covering the panel
-                for sub in view.subviews { if sub is NSVisualEffectView { sub.isHidden = true }; strip(sub) }
-            }
-            if let top = w.contentView?.superview { strip(top) }
-            w.invalidateShadow()
-            if ProcessInfo.processInfo.environment["WAYPOINT_DUMP_PANEL"] != nil {
-                var out = "window opaque=\(w.isOpaque) bg=\(String(describing: w.backgroundColor)) shadow=\(w.hasShadow) frame=\(w.frame) class=\(type(of: w))\n"
-                func dumpL(_ l: CALayer, _ d: Int) {
-                    out += String(repeating: "  ", count: d) + "\(type(of: l)) \(l.frame) bg=\(l.backgroundColor.map { String(describing: $0) } ?? "nil") filters=\(l.backgroundFilters?.count ?? 0) r=\(l.cornerRadius) hidden=\(l.isHidden)\n"
-                    for sub in l.sublayers ?? [] { dumpL(sub, d + 1) }
-                }
-                if let top = w.contentView?.superview?.layer { dumpL(top, 0) }
-                try? out.write(toFile: "/tmp/wp-panel-layers.txt", atomically: true, encoding: .utf8)
             }
         }
     }

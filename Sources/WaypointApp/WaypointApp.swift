@@ -18,6 +18,7 @@ struct WaypointApp: App {
         let screenArg = showArg.flatMap { i in i + 1 < args.count ? Screen(rawValue: args[i + 1]) : nil }
         NotificationCenter.default.addObserver(forName: NSApplication.didFinishLaunchingNotification, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated {
+                TrayController.shared.install(model: m)
                 if args.contains("--menu-window") { showMenuInWindow(model: m); return }   // development aid: the tray popover as a normal window
                 if let i = args.firstIndex(of: "--snapshot"), i + 1 < args.count { snapshotWindow(model: m, to: args[i + 1]); return }
                 if showArg != nil || m.showOnboarding { MainWindow.shared.show(model: m, screen: screenArg) }
@@ -26,11 +27,8 @@ struct WaypointApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra {
-            MenuView().environment(model)
-        } label: {
-            Image(systemName: model.iconName)
-        }
-        .menuBarExtraStyle(.window)
+        // An App needs a scene, and this one creates no window: the real menu bar item and its panel are built in TrayController
+        // (a `Settings` scene here opened an empty settings window at launch).
+        MenuBarExtra("Waypoint", isInserted: .constant(false)) { EmptyView() }
     }
 }
