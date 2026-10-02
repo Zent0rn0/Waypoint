@@ -26,6 +26,15 @@ struct SettingsPage: View {
                           isOn: bind({ model.settings.notifications ?? true }, { v in model.applySettings { $0.notifications = v }; if v { UNUserNotificationCenterBridge.request() } }))
             }
 
+            Panel(title: "Оформление") {
+                Row(title: "Тема", subtitle: "Быстро переключить можно кнопкой справа вверху") {
+                    IconTile(symbol: "circle.lefthalf.filled", color: .indigo)
+                } trailing: {
+                    ChoiceMenu(selection: Binding(get: { model.settings.appearance ?? "" }, set: { model.setAppearance($0.isEmpty ? nil : $0) }),
+                               options: [("", "Как в системе"), ("light", "Светлая"), ("dark", "Тёмная")])
+                }
+            }
+
             Panel(title: "VPN-клиент") {
                 Row(title: "Клиент", subtitle: "Системный VPN из «Настройки → VPN»") {
                     if let p = model.vpnAppPath { AppIcon(path: p) } else { IconTile(symbol: "lock.shield.fill", color: .wpVPN) }

@@ -177,7 +177,22 @@ struct NavBar: View {
         .padding(.horizontal, 4)
         .glassCapsule()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.leading, 20).padding(.top, 12).padding(.bottom, 2)
+        .overlay(alignment: .trailing) { ThemeButton() }
+        .padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 2)
+    }
+}
+
+/// Light / dark switch at the top right of every page.
+struct ThemeButton: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.colorScheme) private var scheme
+    var body: some View {
+        Button { model.toggleAppearance() } label: {
+            Image(systemName: scheme == .dark ? "sun.max.fill" : "moon.fill").font(.system(size: 13, weight: .semibold)).frame(width: 34, height: 26)
+        }
+        .buttonStyle(.plain).foregroundStyle(.secondary)
+        .glassCapsule()
+        .help(scheme == .dark ? "Светлая тема" : "Тёмная тема")
     }
 }
 

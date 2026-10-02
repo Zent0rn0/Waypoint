@@ -27,6 +27,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var onboardingDone: Bool?
     public var tunnelUDPViaVPN: Bool?        // send unrecognised UDP (Discord voice, games) through the VPN
     public var tunnelLogLevel: String?       // trace | debug | info | warn | error  (default warn)
+    public var appearance: String?           // "light" | "dark"; nil = follow the system
     public var subscriptionHours: Int?       // how often provider subscriptions are re-downloaded (default 1)
 
     public init() {}

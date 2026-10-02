@@ -422,6 +422,23 @@ final class AppModel {
         appRoutes = m
     }
 
+    // MARK: appearance
+
+    /// Light, dark, or (nil) whatever the system uses. Applies to every window, the tray panel and sheets.
+    func applyAppearance() {
+        switch settings.appearance {
+        case "light": NSApp.appearance = NSAppearance(named: .aqua)
+        case "dark": NSApp.appearance = NSAppearance(named: .darkAqua)
+        default: NSApp.appearance = nil
+        }
+    }
+    func setAppearance(_ value: String?) { applySettings { $0.appearance = value }; applyAppearance() }
+    /// The toolbar button: flips between light and dark, starting from what is on screen now.
+    func toggleAppearance() {
+        let dark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        setAppearance(dark ? "light" : "dark")
+    }
+
     func applySettings(_ change: (inout AppSettings) -> Void) {
         engine.update(change)
         settings = engine.settings
