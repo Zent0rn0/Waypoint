@@ -10,9 +10,10 @@ import WaypointCore
 enum Metrics {
     static let column: CGFloat = 628         // content width in the 900 pt window (20 pt margins), used by previews
     static let maxColumn: CGFloat = 760      // upper bound when the window is made wider (tiling, full-screen apps)
-    static let groupRadius: CGFloat = 12
-    static let cardRadius: CGFloat = 22       // hero and page headers
-    static let popoverRadius: CGFloat = 16    // the tray panel
+    static let groupRadius: CGFloat = 20       // grouped rows, tables
+    static let cardRadius: CGFloat = 30       // hero and page headers
+    static let popoverRadius: CGFloat = 32    // the tray panel (modules 22 + its 10 pt padding)
+    static let tileRadius: CGFloat = 22       // tiles, tray modules, summary strips
     static let rowInset: CGFloat = 12
     static let tile: CGFloat = 26
     static var separatorInset: CGFloat { rowInset + tile + 10 }

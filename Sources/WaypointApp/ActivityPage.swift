@@ -23,7 +23,7 @@ struct ActivityPage: View {
                 .frame(maxWidth: .infinity, minHeight: 120, idealHeight: 300, maxHeight: .infinity)   // a table's ideal height is all its rows: never let it size the window
                 .clipShape(RoundedRectangle(cornerRadius: Metrics.groupRadius, style: .continuous))
                 .groupBackground()
-            SummaryStrip().groupBackground(radius: 16)
+            SummaryStrip().groupBackground(radius: Metrics.tileRadius)
         }
         .glassGroup()
         .frame(maxWidth: Metrics.maxColumn, minHeight: 0, maxHeight: .infinity)

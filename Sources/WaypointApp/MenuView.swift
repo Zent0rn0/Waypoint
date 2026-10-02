@@ -176,6 +176,6 @@ struct MenuView: View {
         VStack(alignment: .leading, spacing: 0) { c() }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .glassSurface(radius: 16)
+            .glassSurface(radius: Metrics.tileRadius)
     }
 }

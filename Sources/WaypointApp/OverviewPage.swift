@@ -191,7 +191,7 @@ struct StatusTile<Icon: View>: View {
             }
             .padding(.horizontal, 12).padding(.vertical, 11)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .glassSurface(radius: 16, interactive: true)
+            .glassSurface(radius: Metrics.tileRadius, interactive: true)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

@@ -141,7 +141,7 @@ struct SidebarRow<Content: View>: View {
             content
                 .padding(.horizontal, 8).padding(.vertical, 5)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white.opacity(selected ? 0.10 : (hover ? 0.05 : 0))))
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(selected ? 0.10 : (hover ? 0.05 : 0))))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
