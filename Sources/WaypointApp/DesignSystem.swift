@@ -12,6 +12,7 @@ enum Metrics {
     static let maxColumn: CGFloat = 760      // upper bound when the window is made wider (tiling, full-screen apps)
     static let groupRadius: CGFloat = 12
     static let cardRadius: CGFloat = 22       // hero and page headers
+    static let popoverRadius: CGFloat = 16    // the tray panel
     static let rowInset: CGFloat = 12
     static let tile: CGFloat = 26
     static var separatorInset: CGFloat { rowInset + tile + 10 }
@@ -665,6 +666,23 @@ private struct MeshBackdrop: View {
                 .frame(width: g.size.width, height: g.size.height)
                 .clipped()
             }
+        }
+    }
+}
+
+
+/// The menu bar panel is an NSPanel with square corners and its own background; make it transparent so the rounded content
+/// (and its shadow) is all that shows.
+struct TransparentPanel: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView { let v = NSView(); configure(v); return v }
+    func updateNSView(_ v: NSView, context: Context) { configure(v) }
+    private func configure(_ v: NSView) {
+        DispatchQueue.main.async {
+            guard let w = v.window else { return }
+            w.isOpaque = false
+            w.backgroundColor = .clear
+            w.hasShadow = true
+            w.invalidateShadow()
         }
     }
 }

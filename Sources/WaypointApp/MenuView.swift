@@ -89,16 +89,19 @@ struct MenuView: View {
             if let t = model.toast { Text(t).font(.caption).foregroundStyle(Color.wpWarn).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 4) }
 
             HStack {
-                Button { MainWindow.shared.show(model: model) } label: { Label("Открыть Waypoint…", systemImage: "macwindow") }.buttonStyle(.borderless)
+                Button { MainWindow.shared.show(model: model) } label: { Label("Открыть Waypoint…", systemImage: "macwindow").font(.callout) }.buttonStyle(.borderless)
                 Spacer()
-                Button("Выйти") { NSApp.terminate(nil) }.buttonStyle(.borderless).foregroundStyle(.secondary)
+                Button("Выйти") { NSApp.terminate(nil) }.buttonStyle(.borderless).font(.callout).foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 6).padding(.top, 2)
+            .padding(.horizontal, 12).padding(.top, 2).padding(.bottom, 4)
         }
         .glassGroup()
         .padding(10)
         .frame(width: 360)
-        .background(AmbientBackdrop())
+        .fixedSize(horizontal: false, vertical: true)                       // the panel hugs its content
+        .background { AmbientBackdrop() }
+        .clipShape(RoundedRectangle(cornerRadius: Metrics.popoverRadius, style: .continuous))
+        .background(TransparentPanel())                                     // square panel corners must not show behind the rounded content
         .onAppear { model.visible = true; model.refreshCurrentSite(); model.refreshExitCountry(); Task { await model.refresh() } }
         .onDisappear { model.visible = false }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in model.refreshCurrentSite(); Task { await model.refresh() } }
