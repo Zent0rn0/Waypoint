@@ -123,7 +123,7 @@ struct SubscriptionRow: View {
         } trailing: {
             if busy { ProgressView().controlSize(.small) }
             else { Button("Обновить") { Task { await model.refreshSubscription(sub.id) } }.rowControl() }
-            InfoButton(title: sub.name, text: details)
+            InfoButton(title: sub.name, text: details, size: 20, edge: .trailing)
             Button { model.removeSubscription(sub.id) } label: { Image(systemName: "minus.circle.fill").foregroundStyle(.secondary) }
                 .buttonStyle(.borderless).help("Удалить подписку и её серверы")
         }

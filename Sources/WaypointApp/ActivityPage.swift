@@ -15,8 +15,7 @@ struct ActivityPage: View {
         VStack(alignment: .leading, spacing: 14) {
             PageHeader(screen: .activity, compact: true)
             HStack(spacing: 10) {
-                Picker("", selection: $tab) { Text("Соединения").tag(0); Text("Проверки сайтов").tag(1) }
-                    .pickerStyle(.segmented).labelsHidden().fixedSize()
+                SegmentedPills(selection: $tab, options: [(0, "Соединения"), (1, "Проверки сайтов")]).frame(width: 270)
                 Spacer()
                 SearchField(prompt: "Приложение или сайт", text: $query).frame(width: 240)
             }

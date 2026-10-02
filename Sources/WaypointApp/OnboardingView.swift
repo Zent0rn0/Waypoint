@@ -40,6 +40,7 @@ struct OnboardingView: View {
             }
         }
         .padding(30).frame(width: 560)
+        .presentationBackground { AmbientBackdrop() }
     }
 
     private func choice(_ b: Binding<Bool>, _ symbol: String, _ color: Color, _ title: String, _ detail: String) -> some View {

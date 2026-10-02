@@ -44,7 +44,7 @@ struct MenuView: View {
             module {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("Сейчас в сети").font(.caption).foregroundStyle(.secondary)
+                        Text("Сейчас в сети").font(.system(size: 13, weight: .semibold))
                         Spacer()
                         if model.tunnelRunning {
                             let t = model.traffic.total
@@ -52,20 +52,34 @@ struct MenuView: View {
                         }
                     }
                     if !model.tunnelRunning {
-                        Text("Список появится, когда включён режим «Все приложения».").font(.callout).foregroundStyle(.secondary)
+                        Text("Список появится, когда включён режим «Все приложения».").font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     } else if topApps.isEmpty {
-                        Text("Пока ничего не передаётся.").font(.callout).foregroundStyle(.secondary)
+                        Text("Пока ничего не передаётся.").font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     } else {
                         ForEach(topApps, id: \.key) { app in appRow(app.key, app.value) }
                     }
                 }
             }
 
+            if let host = model.currentHost {
+                module {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("Сайт в браузере").font(.system(size: 13, weight: .semibold))
+                            Spacer()
+                            if let d = model.currentDecision { RouteBadge(route: d.action == .race ? "direct" : d.action.rawValue) }
+                        }
+                        Text(host).font(.system(.callout, design: .monospaced)).lineLimit(1).truncationMode(.middle)
+                        RoutePicker(selection: Binding(get: { model.currentIsPinned }, set: { model.pin(host, $0) })).frame(maxWidth: .infinity)
+                    }
+                }
+            }
+
             module {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Последние сайты").font(.caption).foregroundStyle(.secondary)
+                    Text("Последние сайты").font(.system(size: 13, weight: .semibold))
                     if recentSites.isEmpty {
-                        Text("Когда вы откроете незнакомый сайт, он появится здесь с выбранным путём.").font(.callout).foregroundStyle(.secondary)
+                        Text("Когда вы откроете незнакомый сайт, он появится здесь с выбранным путём.").font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     } else {
                         ForEach(recentSites, id: \.id) { e in siteRow(e) }
                     }
@@ -84,6 +98,7 @@ struct MenuView: View {
         .glassGroup()
         .padding(10)
         .frame(width: 360)
+        .background(AmbientBackdrop())
         .onAppear { model.visible = true; model.refreshCurrentSite(); model.refreshExitCountry(); Task { await model.refresh() } }
         .onDisappear { model.visible = false }
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in model.refreshCurrentSite(); Task { await model.refresh() } }
@@ -107,7 +122,7 @@ struct MenuView: View {
             AppIcon(path: key, size: 24)
             VStack(alignment: .leading, spacing: 1) {
                 Text(AppPath.displayName(key)).lineLimit(1)
-                Text("VPN \(Fmt.bytes(b.vpn)) · напрямую \(Fmt.bytes(b.direct))").font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                Text(Fmt.bytes(b.total)).font(.caption2).foregroundStyle(.secondary).monospacedDigit()
             }
             Spacer(minLength: 6)
             if target == nil { Pill(text: vpn ? "VPN" : "Напрямую", color: vpn ? .wpVPN : .wpDirect) }

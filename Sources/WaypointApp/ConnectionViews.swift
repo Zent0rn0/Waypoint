@@ -27,10 +27,9 @@ struct TargetMenu: View {
                 }
             }
         } label: {
-            Text(model.targetTitle(current))
+            PillMenuLabel(text: model.targetTitle(current), size: size)
         }
-        .menuStyle(.button).menuIndicator(.visible)
-        .contentButton(prominent: false).controlSize(size).fixedSize()
+        .pillMenu(size: size)
         .help("Куда идут эти соединения")
     }
 
@@ -160,7 +159,8 @@ struct AppDetailSheet: View {
                 Button("Готово") { dismiss() }.barControl(prominent: true).keyboardShortcut(.defaultAction)
             }
         }
-        .padding(22).frame(width: 620, height: 600)
+        .padding(22).frame(width: 620, height: 540)
+        .presentationBackground { AmbientBackdrop() }
     }
 
     private func add() {

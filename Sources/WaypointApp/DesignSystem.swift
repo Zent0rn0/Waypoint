@@ -88,12 +88,9 @@ extension View {
         }
     }
 
-    /// Content controls: standard bordered buttons, the same look as the pop-up menus next to them
-    /// (glass is for the floating layer — cards, header ⓘ, search; glass buttons on glass cards wash out).
-    @ViewBuilder
-    func contentButton(prominent: Bool) -> some View {
-        if prominent { self.buttonStyle(.borderedProminent) } else { self.buttonStyle(.bordered) }
-    }
+    /// The one button of the app: a capsule (soft fill, or the tint color when prominent). Buttons, pop-up menus, segmented
+    /// controls and fields all share this shape, so nothing on a page looks like a leftover system control.
+    func contentButton(prominent: Bool) -> some View { buttonStyle(CapsuleButtonStyle(prominent: prominent)) }
     /// Controls inside rows: small (prominent for the main action).
     func rowControl(prominent: Bool = false) -> some View { contentButton(prominent: prominent).controlSize(.small) }
     /// Controls in bars (add rows, page actions, sheets): regular size.
@@ -125,7 +122,7 @@ struct Page<Content: View>: View {
 }
 
 /// Page header with the same composition as the Overview hero (tile · title · one sentence · ⓘ),
-/// so every page opens the same way; only Overview's card is vivid, the others carry a light tint of the page color.
+/// so every page opens the same way: neutral glass, the page color lives only in the glyph.
 struct PageHeader<Accessory: View>: View {
     let screen: Screen
     var compact = false
@@ -144,7 +141,7 @@ struct PageHeader<Accessory: View>: View {
         }
         .padding(compact ? 14 : 18)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassSurface(radius: Metrics.cardRadius, tint: screen.color.opacity(0.16))
+        .glassSurface(radius: Metrics.cardRadius)
     }
 }
 
@@ -152,31 +149,25 @@ extension PageHeader where Accessory == EmptyView {
     init(screen: Screen, compact: Bool = false) { self.init(screen: screen, compact: compact, accessory: { EmptyView() }) }
 }
 
-/// Round glass ⓘ in page headers.
-struct HeaderInfoButton: View {
-    let title: String
-    let text: String
-    @State private var shown = false
-    var body: some View {
-        Button { shown.toggle() } label: {
-            Image(systemName: "info").font(.system(size: 13, weight: .semibold)).frame(width: 22, height: 22)
-        }
-        .glassButton().buttonBorderShape(.circle).help("Подробнее")
-        .popover(isPresented: $shown, arrowEdge: .bottom) { HelpBubble(title: title, text: text) }
-    }
-}
-
-/// ⓘ for a single row (like «Показать детали» in System Settings → VPN).
+/// ⓘ everywhere (page headers and rows): the same small round button that opens the same bubble.
 struct InfoButton: View {
     let title: String
     let text: String
+    var size: CGFloat = 22
+    var edge: Edge = .bottom
     @State private var shown = false
     var body: some View {
-        Button { shown.toggle() } label: { Image(systemName: "info.circle").font(.system(size: 15)).foregroundStyle(.secondary) }
-            .buttonStyle(.borderless).help("Подробнее")
-            .popover(isPresented: $shown, arrowEdge: .trailing) { HelpBubble(title: title, text: text) }
+        Button { shown.toggle() } label: {
+            Image(systemName: "info").font(.system(size: size * 0.5, weight: .semibold)).foregroundStyle(.secondary)
+                .frame(width: size, height: size)
+                .background(Circle().fill(Color.primary.opacity(0.10)))
+                .overlay(Circle().strokeBorder(Color.primary.opacity(0.10)))
+        }
+        .buttonStyle(.plain).help("Подробнее")
+        .popover(isPresented: $shown, arrowEdge: edge) { HelpBubble(title: title, text: text) }
     }
 }
+typealias HeaderInfoButton = InfoButton
 
 struct HelpBubble: View {
     let title: String
@@ -421,10 +412,29 @@ struct ChoiceMenu<T: Hashable>: View {
             }
             .pickerStyle(.inline).labelsHidden()
         } label: {
-            Text(options.first { $0.value == selection }?.title ?? "—")
+            PillMenuLabel(text: options.first { $0.value == selection }?.title ?? "—", size: size)
         }
-        .menuStyle(.button).menuIndicator(.visible)
-        .contentButton(prominent: false).controlSize(size).fixedSize()
+        .pillMenu(size: size)
+    }
+}
+
+/// What every pop-up menu looks like closed: text plus a small up/down chevron (the capsule is drawn around the Menu by `pillMenu`,
+/// because a menu style drops backgrounds applied to its label).
+struct PillMenuLabel: View {
+    let text: String
+    var size: ControlSize = .small
+    var body: some View {
+        HStack(spacing: 5) {
+            Text(text).lineLimit(1)
+            Image(systemName: "chevron.up.chevron.down").font(.system(size: 8, weight: .bold)).foregroundStyle(.secondary)
+        }
+    }
+}
+
+extension View {
+    func pillMenu(size: ControlSize) -> some View {
+        menuStyle(.borderlessButton).menuIndicator(.hidden).buttonStyle(.plain)
+            .modifier(CapsuleLook(size: size, prominent: false, pressed: false)).fixedSize()
     }
 }
 
@@ -446,9 +456,9 @@ struct FieldBox: ViewModifier {
     var height: CGFloat = 28
     func body(content: Content) -> some View {
         content.textFieldStyle(.plain)
-            .padding(.horizontal, 10).frame(height: height)
-            .background(Color.primary.opacity(0.07), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 8, style: .continuous).strokeBorder(Color.primary.opacity(0.08)))
+            .padding(.horizontal, 12).frame(height: height)
+            .background(Color.primary.opacity(0.07), in: Capsule())
+            .overlay(Capsule().strokeBorder(Color.primary.opacity(0.09)))
     }
 }
 
@@ -465,7 +475,62 @@ struct SearchField: View {
             }
         }
         .padding(.horizontal, 12).frame(height: 32)
-        .glassCapsule()
+        .background(Color.primary.opacity(0.07), in: Capsule())
+        .overlay(Capsule().strokeBorder(Color.primary.opacity(0.09)))
+    }
+}
+
+// MARK: - Capsule controls
+
+/// Shared look of buttons and pop-up labels. Height follows the control size (small in rows, regular in bars and sheets).
+struct CapsuleLook: ViewModifier {
+    var size: ControlSize
+    var prominent: Bool
+    var pressed: Bool
+    @Environment(\.isEnabled) private var enabled
+    func body(content: Content) -> some View {
+        let small = size == .small || size == .mini
+        content
+            .font(.system(size: small ? 12 : 13.5, weight: .medium))
+            .foregroundStyle(prominent ? Color.white : Color.primary)
+            .padding(.horizontal, small ? 11 : 16).frame(height: small ? 24 : 30)
+            .background(Capsule().fill(prominent ? AnyShapeStyle(.tint) : AnyShapeStyle(Color.primary.opacity(pressed ? 0.20 : 0.11))))
+            .overlay(Capsule().strokeBorder(Color.primary.opacity(prominent ? 0 : 0.10)))
+            .opacity(enabled ? 1 : 0.45)
+            .contentShape(Capsule())
+    }
+}
+
+struct CapsuleButtonStyle: ButtonStyle {
+    var prominent = false
+    @Environment(\.controlSize) private var controlSize
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.modifier(CapsuleLook(size: controlSize, prominent: prominent, pressed: configuration.isPressed))
+            .opacity(configuration.isPressed && prominent ? 0.85 : 1)
+    }
+}
+
+/// Segmented choice in the same capsule language (replaces the system segmented control).
+struct SegmentedPills<T: Hashable>: View {
+    @Binding var selection: T
+    let options: [(value: T, title: String)]
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(options.indices, id: \.self) { i in
+                let on = options[i].value == selection
+                Button { withAnimation(.snappy(duration: 0.18)) { selection = options[i].value } } label: {
+                    Text(options[i].title).font(.system(size: 12.5, weight: on ? .semibold : .regular)).lineLimit(1).minimumScaleFactor(0.8)
+                        .foregroundStyle(on ? Color.primary : Color.secondary)
+                        .padding(.horizontal, 6).frame(height: 26).frame(maxWidth: .infinity)
+                        .background(Capsule().fill(on ? Color.primary.opacity(0.16) : .clear))
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(3)
+        .background(Capsule().fill(Color.primary.opacity(0.07)))
+        .overlay(Capsule().strokeBorder(Color.primary.opacity(0.09)))
     }
 }
 
@@ -473,12 +538,10 @@ struct SearchField: View {
 struct RoutePicker: View {
     @Binding var selection: Route?
     var body: some View {
-        Picker("", selection: Binding<Int>(
+        SegmentedPills(selection: Binding<Int>(
             get: { switch selection { case nil: 0; case .vpn?: 1; case .direct?: 2; case .block?: 3 } },
-            set: { selection = [nil, .vpn, .direct, .block][$0] })) {
-            Text("Авто").tag(0); Text("VPN").tag(1); Text("Напрямую").tag(2); Text("Блок").tag(3)
-        }
-        .pickerStyle(.segmented).labelsHidden()
+            set: { selection = [nil, .vpn, .direct, .block][$0] }),
+                       options: [(0, "Авто"), (1, "VPN"), (2, "Напрямую"), (3, "Блок")])
     }
 }
 

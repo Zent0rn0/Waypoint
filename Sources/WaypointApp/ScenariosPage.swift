@@ -25,7 +25,7 @@ struct ScenarioRow: View {
         Row(title: playbook.title, subtitle: playbook.effect) {
             IconTile(symbol: playbook.icon, color: playbook.color)
         } trailing: {
-            InfoButton(title: playbook.title, text: playbook.details)
+            InfoButton(title: playbook.title, text: playbook.details, size: 20, edge: .trailing)
             Toggle("", isOn: Binding(get: { model.isActive(playbook.id) }, set: { model.setPlaybook(playbook.id, $0) }))
                 .toggleStyle(.switch).controlSize(.small).labelsHidden()
         }

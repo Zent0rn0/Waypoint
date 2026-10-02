@@ -124,6 +124,7 @@ struct RulesTextSheet: View {
             }
         }
         .padding(22).frame(width: 620, height: 460)
+        .presentationBackground { AmbientBackdrop() }
     }
 }
 
