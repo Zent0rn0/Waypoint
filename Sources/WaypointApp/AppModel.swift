@@ -115,6 +115,7 @@ final class AppModel {
     var appRoutes: [String: Route] = [:]
     /// Per-connection rules (app / site / app+site → any target, including one exact server).
     var connectionRules: [ConnectionRule] = []
+    @ObservationIgnored var lastSubscriptionAttempt: [String: Date] = [:]
 
     // lists / diagnostics / misc
     var communityInstalled: Set<String> = []
@@ -228,7 +229,7 @@ final class AppModel {
         if let front = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier.map { Browsers.scripts[$0] != nil } ?? false }) { lastBrowser = front.bundleIdentifier }
 
         Task { await start() }
-        Task { while true { try? await Task.sleep(nanoseconds: 3_600_000_000_000); await refreshStaleSubscriptions() } }
+        Task { while true { try? await Task.sleep(nanoseconds: 300_000_000_000); await refreshStaleSubscriptions() } }   // every 5 min: is any subscription due?
         // Slow loop: system state (scutil, networksetup). Fast loop: live connections — short flows must not slip between polls.
         Task { while true { await refresh(); try? await Task.sleep(nanoseconds: visible ? 1_500_000_000 : 4_000_000_000) } }
         Task { while true { await pollAPI(); try? await Task.sleep(nanoseconds: 1_000_000_000) } }
@@ -625,7 +626,7 @@ final class AppModel {
         }
     }
 
-    func refreshSubscription(_ id: String) async {
+    func refreshSubscription(_ id: String, quiet: Bool = false) async {
         guard subscriptions.contains(where: { $0.id == id }), !subscriptionBusy.contains(id) else { return }
         subscriptionBusy.insert(id)
         defer { subscriptionBusy.remove(id) }
@@ -641,6 +642,7 @@ final class AppModel {
         }
         guard let j = subscriptions.firstIndex(where: { $0.id == id }) else { return }
         if let r = result {
+            let before = Set(servers.filter { $0.source == id }.map(\.link))
             servers = Subscription.merge(existing: servers, subscription: id, fresh: r.parsed.servers, region: engine.settings.region)
             ServerStore.save(servers, to: engine.supportDirectory)
             subscriptions[j].updated = Date()
@@ -651,7 +653,9 @@ final class AppModel {
             subscriptions[j].info = r.info
             subscriptions[j].updateHours = r.updateHours
             if let t = r.title { subscriptions[j].title = t }
-            flash("«\(subscriptions[j].name)»: \(plural(r.parsed.servers.count, "сервер", "сервера", "серверов")) — проверяю…")
+            let changed = before != Set(servers.filter { $0.source == id }.map(\.link))
+            if !quiet { flash("«\(subscriptions[j].name)»: \(plural(r.parsed.servers.count, "сервер", "сервера", "серверов")) — проверяю…") }
+            else if changed { flash("Подписка «\(subscriptions[j].name)» обновилась: серверов \(r.parsed.servers.count)") }
             let unchecked = Set(servers.filter { $0.source == id && $0.checked == nil }.map(\.id))
             if !unchecked.isEmpty { Task { await auditServers(ids: unchecked) } }
         } else {
@@ -660,8 +664,14 @@ final class AppModel {
         SubscriptionStore.save(subscriptions, to: engine.supportDirectory)
     }
 
+    /// Downloads every subscription that is due (default: hourly, see Settings). A failed attempt is not repeated for 10 minutes.
     func refreshStaleSubscriptions() async {
-        for sub in subscriptions where sub.isStale() { await refreshSubscription(sub.id) }
+        let hours = settings.subscriptionHours ?? 1
+        for sub in subscriptions where sub.isStale(hours: hours) {
+            if let t = lastSubscriptionAttempt[sub.id], Date().timeIntervalSince(t) < 600 { continue }
+            lastSubscriptionAttempt[sub.id] = Date()
+            await refreshSubscription(sub.id, quiet: true)
+        }
     }
 
     func removeSubscription(_ id: String) {

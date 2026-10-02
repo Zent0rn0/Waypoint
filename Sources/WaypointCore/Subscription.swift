@@ -47,9 +47,10 @@ public struct SubscriptionEntry: Codable, Identifiable, Equatable, Sendable {
         self.id = id; self.url = url; self.servers = 0; self.skipped = 0
     }
     public var name: String { title ?? URL(string: url)?.host ?? "Подписка" }
-    public func isStale(now: Date = Date()) -> Bool {
+    /// `hours`: the user's own refresh interval; without it the provider's hint (or 12 h) applies.
+    public func isStale(now: Date = Date(), hours userHours: Int? = nil) -> Bool {
         guard let updated else { return true }
-        let hours = min(max(updateHours ?? 12, 1), 72)
+        let hours = min(max(userHours ?? updateHours ?? 12, 1), 72)
         return now.timeIntervalSince(updated) > Double(hours) * 3600
     }
 }

@@ -76,6 +76,13 @@ struct SettingsPage: View {
                 ToggleRow(title: "Звонки и игры через VPN", subtitle: "Голос Discord, игры и другой трафик без имени сайта", symbol: "phone.fill", color: .teal,
                           isOn: bind({ model.settings.tunnelUDPViaVPN ?? false }, { v in model.applySettings { $0.tunnelUDPViaVPN = v } }))
                 RowSeparator()
+                Row(title: "Обновлять подписки", subtitle: "Новые серверы появляются сами, пропавшие убираются; настройки серверов сохраняются") {
+                    IconTile(symbol: "arrow.triangle.2.circlepath", color: .blue)
+                } trailing: {
+                    ChoiceMenu(selection: Binding(get: { model.settings.subscriptionHours ?? 1 }, set: { v in model.applySettings { $0.subscriptionHours = v } }),
+                               options: [(1, "Каждый час"), (3, "Каждые 3 часа"), (6, "Каждые 6 часов"), (12, "Каждые 12 часов"), (24, "Раз в сутки")])
+                }
+                RowSeparator()
                 Row(title: "Ждать прямой путь", subtitle: "\(model.settings.race.hedgeMs) мс, потом незнакомый сайт пробуется через VPN") {
                     IconTile(symbol: "stopwatch.fill", color: .orange)
                 } trailing: {

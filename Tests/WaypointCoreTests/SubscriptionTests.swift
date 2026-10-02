@@ -146,6 +146,8 @@ import Foundation
         #expect(!e.isStale(now: e.updated!.addingTimeInterval(1800)))
         e.updateHours = 1
         #expect(e.isStale(now: e.updated!.addingTimeInterval(3700)))
+        #expect(e.isStale(now: e.updated!.addingTimeInterval(3700), hours: 1), "the user's own interval overrides the provider's")
+        #expect(!e.isStale(now: e.updated!.addingTimeInterval(1800), hours: 1))
     }
 }
 

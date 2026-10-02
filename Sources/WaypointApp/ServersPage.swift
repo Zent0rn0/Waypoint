@@ -49,7 +49,7 @@ struct ServersPage: View {
             }
 
             if !model.subscriptions.isEmpty {
-                Panel(title: "Подписки", footer: "Обновляются сами — раз в 12 часов или как задал провайдер. Ваши включения и выключения серверов при обновлении сохраняются.") {
+                Panel(title: "Подписки", footer: "Обновляются сами — по умолчанию каждый час (можно изменить в «Настройках»). Ваши включения и выключения серверов при обновлении сохраняются.") {
                     ForEach(model.subscriptions.indexed(by: \.id)) { item in
                         if item.index > 0 { RowSeparator() }
                         SubscriptionRow(sub: item.value)
