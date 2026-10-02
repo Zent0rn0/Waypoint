@@ -5,34 +5,46 @@
 # The daemon starts with the tunnel OFF; it only does something after `waypoint tunnel on` / the app's switch.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-USER_NAME=""; WP=""; SBX=""
+USER_NAME=""; WP=""; SBX=""; XRX=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --user) USER_NAME="$2"; shift 2 ;;
-    --payload) WP="$2/waypoint"; SBX="$2/sing-box"; shift 2 ;;
+    --payload) WP="$2/waypoint"; SBX="$2/sing-box"; XRX="$2/xray"; shift 2 ;;
     --wp) WP="$2"; shift 2 ;;
     --sb) SBX="$2"; shift 2 ;;
+    --xr) XRX="$2"; shift 2 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
 [ -n "$WP" ] || WP="$HERE/../build/waypoint"
 [ -n "$SBX" ] || SBX="$HERE/../vendor/sing-box"
-if [ "$(id -u)" != 0 ]; then exec sudo "$0" --user "${USER_NAME:-$(id -un)}" --wp "$WP" --sb "$SBX"; fi
+[ -n "$XRX" ] || XRX="$HERE/../vendor/xray"
+if [ "$(id -u)" != 0 ]; then exec sudo "$0" --user "${USER_NAME:-$(id -un)}" --wp "$WP" --sb "$SBX" --xr "$XRX"; fi
 USER_NAME="${USER_NAME:-${SUDO_USER:?run via sudo from your own account}}"
 HOME_DIR="$(dscl . -read "/Users/$USER_NAME" NFSHomeDirectory | awk '{print $2}')"
 SUPPORT="$HOME_DIR/Library/Application Support/Waypoint"
 EXPECTED="d652879eed7e38b866fa980bc2e119dcdb13968fe5e6583670293a258686d0e7"
+XRAY_EXPECTED="5d9dd24c0aba4b6cfcc6a33a5d67f854816ee17f392bf932ec8176da46f7e404"
 
 [ -x "$WP" ] || { echo "Нет $WP — сначала выполните scripts/bundle.sh"; exit 1; }
 [ -x "$SBX" ] || { echo "Нет $SBX"; exit 1; }
 ACTUAL="$(shasum -a 256 "$SBX" | cut -d' ' -f1)"
 [ "$ACTUAL" = "$EXPECTED" ] || { echo "Контрольная сумма sing-box не совпала — отказываюсь ставить."; exit 1; }
 
+# Xray (for servers sing-box cannot dial) is optional: without it the app keeps running its own helper.
+HAVE_XRAY=0
+if [ -x "$XRX" ]; then
+  [ "$(shasum -a 256 "$XRX" | cut -d' ' -f1)" = "$XRAY_EXPECTED" ] || { echo "Контрольная сумма Xray не совпала — отказываюсь ставить."; exit 1; }
+  HAVE_XRAY=1
+fi
+
 install -d -m 755 -o root -g wheel /usr/local/libexec/waypoint /var/db/waypoint
 install -m 755 -o root -g wheel "$WP" /usr/local/libexec/waypoint/waypoint
 install -m 755 -o root -g wheel "$SBX" /usr/local/libexec/waypoint/sing-box
+[ "$HAVE_XRAY" = 1 ] && install -m 755 -o root -g wheel "$XRX" /usr/local/libexec/waypoint/xray
 install -d -m 755 -o "$USER_NAME" "$SUPPORT"
-xattr -c /usr/local/libexec/waypoint/waypoint /usr/local/libexec/waypoint/sing-box 2>/dev/null || true
+xattr -c /usr/local/libexec/waypoint/waypoint /usr/local/libexec/waypoint/sing-box /usr/local/libexec/waypoint/xray 2>/dev/null || true
+chmod 600 /var/db/waypoint/config.json /var/db/waypoint/xray.json 2>/dev/null || true
 
 PLIST=/Library/LaunchDaemons/dev.waypoint.daemon.plist
 cat > "$PLIST" <<PL

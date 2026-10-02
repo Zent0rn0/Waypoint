@@ -74,3 +74,14 @@ import Foundation
         #expect(l[0].engine == nil)
     }
 }
+
+@Suite("Xray selection") struct XraySelectionTests {
+    @Test func onlyEnabledXrayServersWithAPortAreHandedToTheHelper() {
+        func e(_ id: String, enabled: Bool, engine: String?, port: Int?) -> ServerEntry {
+            var s = ServerEntry(id: id, name: id, link: "link-\(id)", enabled: enabled); s.engine = engine; s.localPort = port; return s
+        }
+        let items = XrayLink.items([e("a", enabled: true, engine: "xray", port: 24100), e("b", enabled: false, engine: "xray", port: 24101),
+                                    e("c", enabled: true, engine: nil, port: nil), e("d", enabled: true, engine: "xray", port: nil)])
+        #expect(items.map(\.port) == [24100] && items.map(\.link) == ["link-a"])
+    }
+}

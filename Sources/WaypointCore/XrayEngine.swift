@@ -5,6 +5,11 @@ import Foundation
 // through the physical interface. The tunnel's sing-box treats each such server as a loopback SOCKS outbound.
 
 public enum XrayLink {
+    /// The enabled Xray-carried servers with their local ports: what the helper has to listen on.
+    public static func items(_ servers: [ServerEntry]) -> [(port: Int, link: String)] {
+        servers.filter { $0.enabled && $0.engine == "xray" }.compactMap { e in e.localPort.map { (port: $0, link: e.link) } }
+    }
+
     static let flows: Set<String> = ["xtls-rprx-vision", "xtls-rprx-vision-udp443"]
     static let fingerprints: Set<String> = ["chrome", "firefox", "safari", "ios", "android", "edge", "360", "qq", "random", "randomized"]
     static let xhttpModes: Set<String> = ["auto", "packet-up", "stream-up", "stream-one"]
@@ -159,8 +164,7 @@ public final class XrayRunner: @unchecked Sendable {
     }
 
     public func apply(servers: [ServerEntry], interface: String) {
-        let items = servers.filter { $0.enabled && $0.engine == "xray" }.compactMap { e in e.localPort.map { (port: $0, link: e.link) } }
-        let cfg = XrayLink.config(items, interface: interface)
+        let cfg = XrayLink.config(XrayLink.items(servers), interface: interface)
         lock.lock()
         let same = cfg == current && (proc?.isRunning ?? false)
         // Died on its own (crash, killed): restart it, but never in a tight loop if it keeps dying right away.

@@ -169,7 +169,8 @@ final class AppModel {
             guard fm.fileExists(atPath: a), fm.fileExists(atPath: b) else { return true }
             return fm.contentsEqual(atPath: a, andPath: b)
         }
-        return !same("waypoint") || !same("sing-box")
+        let xrayMissing = fm.fileExists(atPath: res.appendingPathComponent("xray").path) && !fm.fileExists(atPath: "/usr/local/libexec/waypoint/xray")
+        return !same("waypoint") || !same("sing-box") || xrayMissing || tunnel?.xrayManaged != true
     }
     var vpnConnected: Bool { vpnState == "Connected" }
 
@@ -233,7 +234,7 @@ final class AppModel {
         Task { while true { await pollAPI(); try? await Task.sleep(nanoseconds: 1_000_000_000) } }
         // Watchdog for the Xray helper: restarts it if it died and re-binds it when the network interface changed
         // (Wi-Fi ↔ cable, sleep/wake). Without it every Xray-carried server stayed dead until the next manual action.
-        Task { while true { try? await Task.sleep(nanoseconds: 5_000_000_000); if running { syncXray() } } }
+        Task { while true { try? await Task.sleep(nanoseconds: 5_000_000_000); if running { syncXray() } } }   // no-op once the daemon manages Xray
         // Servers the checker switched off (or that failed lately) get another look every 20 minutes and return by themselves.
         Task { try? await Task.sleep(nanoseconds: 90_000_000_000); while true { await recheckServers(); try? await Task.sleep(nanoseconds: 1_200_000_000_000) } }
         Task { [weak self] in
@@ -561,7 +562,12 @@ final class AppModel {
     }
 
     /// Keep the Xray helper in sync with the enabled Xray-engine servers.
-    func syncXray() { xray.apply(servers: servers, interface: engine.network.physical?.name ?? "en0") }
+    /// With the daemon in charge of Xray (it survives the app closing and is supervised there) the app keeps none of its own:
+    /// two helpers would fight over the same local ports.
+    func syncXray() {
+        if tunnel?.xrayManaged == true { if xray.isRunning { xray.stop() }; return }
+        xray.apply(servers: servers, interface: engine.network.physical?.name ?? "en0")
+    }
 
     /// Check servers with both engines; pick the engine that works, record the real exit country. On a server's first
     /// check, switch it off if it does not work or (in the Russian region) exits inside Russia; later it is the user's choice.

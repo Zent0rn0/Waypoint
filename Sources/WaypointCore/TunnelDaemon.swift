@@ -14,6 +14,8 @@ public struct TunnelStatus: Codable, Equatable {
     public var notes: [String]?
     public var retryAt: Date?
     public var servers: Int?
+    /// The daemon runs (and supervises) the Xray helper itself; the app must not start its own.
+    public var xrayManaged: Bool? = nil
     public var lists: Int?
     public init(state: State, message: String, physical: String?, vpn: String?, updated: Date, notes: [String]? = nil, retryAt: Date? = nil, servers: Int? = nil, lists: Int? = nil) {
         self.state = state; self.message = message; self.physical = physical; self.vpn = vpn; self.updated = updated
@@ -53,12 +55,16 @@ public final class TunnelDaemon {
     public struct Options {
         public var home: URL             // the user's Waypoint support dir
         public var singBox: URL
+        /// Xray helper binary; defaults to `xray` next to sing-box when it is there.
+        public var xray: URL?
         public var state: URL            // root-owned working dir (config, rulesets, cache, log, status)
         public var tun = true            // false: local mixed inbound instead of a TUN (for testing without root)
         public var mixedPort: UInt16 = 7811
         public var apiPort: UInt16 = 9097
-        public init(home: URL, singBox: URL, state: URL, tun: Bool = true, mixedPort: UInt16 = 7811, apiPort: UInt16 = 9097) {
+        public init(home: URL, singBox: URL, state: URL, tun: Bool = true, mixedPort: UInt16 = 7811, apiPort: UInt16 = 9097, xray: URL? = nil) {
             self.home = home; self.singBox = singBox; self.state = state; self.tun = tun; self.mixedPort = mixedPort; self.apiPort = apiPort
+            let beside = singBox.deletingLastPathComponent().appendingPathComponent("xray")
+            self.xray = xray ?? (FileManager.default.isExecutableFile(atPath: beside.path) ? beside : nil)
         }
     }
 
@@ -70,6 +76,11 @@ public final class TunnelDaemon {
     private var childPID: pid_t?
     private var childRunning: Bool { childPID.map { kill($0, 0) == 0 } ?? false }
     private var structuralKey = ""
+    // Xray helper (servers sing-box cannot dial): same /bin/sh launch, supervised by pid, restarted when it dies or its config changes.
+    private var xrayPID: pid_t?
+    private var xrayConfig: Data?
+    private var xrayLastStart = Date.distantPast
+    private var xrayAvailable: Bool { o.xray.map { FileManager.default.isExecutableFile(atPath: $0.path) } ?? false }
     private var startedAt = Date.distantPast
     private var lastHealth = Date.distantPast
     private var healthFailures = 0
@@ -120,7 +131,7 @@ public final class TunnelDaemon {
         for sig in [SIGTERM, SIGINT] {
             signal(sig, SIG_IGN)
             let s = DispatchSource.makeSignalSource(signal: sig, queue: queue)
-            s.setEventHandler { [weak self] in self?.stopChild(); self?.publish(.off, "демон остановлен"); exit(0) }
+            s.setEventHandler { [weak self] in self?.stopChild(); self?.stopXray(); self?.publish(.off, "демон остановлен"); exit(0) }
             s.resume(); Self.signalSources.append(s)
         }
         publish(.off, "демон запущен, туннель выключен")
@@ -168,6 +179,7 @@ public final class TunnelDaemon {
         flagWasPresent = enabled
         guard enabled else {
             if childPID != nil { stopChild() }
+            stopXray()
             // Keep an emergency shutdown visible until the user switches the tunnel on again.
             if let e = lastError { publish(.error, e) } else { publish(.off, "туннель выключен") }
             return
@@ -179,7 +191,8 @@ public final class TunnelDaemon {
         cooldownUntil = nil
 
         let settings = AppSettings.load(from: o.home)
-        guard let phys = network.physical?.name else { stopChild(); publish(.waiting, "нет физического интерфейса (Wi‑Fi/Ethernet)"); return }
+        guard let phys = network.physical?.name else { stopChild(); stopXray(); publish(.waiting, "нет физического интерфейса (Wi‑Fi/Ethernet)"); return }
+        superviseXray(phys: phys)
         guard let vpnName = settings.vpnServiceName, let svc = VPNController.service(named: vpnName), svc.isConnected,
               let vpnIf = NetworkFacts.vpnInterface(serviceID: svc.id) else {
             stopChild(); publish(.waiting, "VPN-клиент не подключён — туннель не запускается, сеть работает как обычно", physical: phys); return
@@ -276,6 +289,7 @@ public final class TunnelDaemon {
         for a in attempts {
             guard let data = try? TunnelConfig.generate(p, policy: policy, servers: a.servers, community: a.lists, connectionServers: connectionServers) else { continue }
             try? data.write(to: configURL, options: .atomic)
+            chmod(configURL.path, 0o600)                       // server credentials: root only (nothing else reads it)
             let singBox = o.singBox.path, cfg = configURL.path
             let r = await Task.detached { runProcess(singBox, ["check", "-c", cfg]) }.value
             if r.code == 0 {
@@ -313,10 +327,13 @@ public final class TunnelDaemon {
     /// while the same binary started via a system shell worked. Going through `sh` makes launchd the parent. Nothing user-controlled
     /// reaches the shell: paths are passed as positional arguments, never interpolated into the script.
     private func launch(config: URL) -> pid_t? {
+        launchDetached(o.singBox, ["run", "-c", config.path, "-D", o.state.path], log: o.state.appendingPathComponent("sing-box.log"))
+    }
+
+    private func launchDetached(_ binary: URL, _ args: [String], log: URL) -> pid_t? {
         let sh = Process()
         sh.executableURL = URL(fileURLWithPath: "/bin/sh")
-        sh.arguments = ["-c", "\"$1\" run -c \"$2\" -D \"$3\" >>\"$4\" 2>&1 </dev/null & echo $!", "waypoint-launch",
-                        o.singBox.path, config.path, o.state.path, o.state.appendingPathComponent("sing-box.log").path]
+        sh.arguments = ["-c", "bin=\"$1\"; logf=\"$2\"; shift 2; \"$bin\" \"$@\" >>\"$logf\" 2>&1 </dev/null & echo $!", "waypoint-launch", binary.path, log.path] + args
         let out = Pipe()
         sh.standardOutput = out
         do { try sh.run() } catch { return nil }
@@ -376,6 +393,41 @@ public final class TunnelDaemon {
         publish(.error, lastError!, retryAt: cooldownUntil)
     }
 
+    // MARK: Xray helper
+
+    /// Keeps exactly one Xray process running for the enabled Xray-carried servers, on the physical interface.
+    /// Runs as part of the daemon, so it no longer dies when the app is closed, restarted or crashes.
+    private func superviseXray(phys: String) {
+        guard let bin = o.xray, xrayAvailable else { return }
+        let cfg = XrayLink.config(XrayLink.items(ServerStore.load(from: o.home)), interface: phys)
+        guard let cfg else { stopXray(); return }
+        let alive = xrayPID.map { kill($0, 0) == 0 } ?? false
+        if alive && cfg == xrayConfig { return }
+        if !alive, xrayPID != nil { log("xray завершился сам (pid \(xrayPID!))"); xrayPID = nil }
+        // died right after starting (port still held by an old helper, bad config): don't spin
+        if !alive && cfg == xrayConfig && Date().timeIntervalSince(xrayLastStart) < 10 { return }
+        stopXray()
+        let url = o.state.appendingPathComponent("xray.json")
+        guard (try? cfg.write(to: url, options: .atomic)) != nil else { return }
+        chmod(url.path, 0o600)                                    // holds the servers' credentials
+        let logURL = o.state.appendingPathComponent("xray.log")
+        if let sz = (try? FileManager.default.attributesOfItem(atPath: logURL.path))?[.size] as? NSNumber, sz.intValue > 2_000_000 { try? FileManager.default.removeItem(at: logURL) }
+        if !FileManager.default.fileExists(atPath: logURL.path) { FileManager.default.createFile(atPath: logURL.path, contents: nil) }
+        xrayLastStart = Date()
+        guard let pid = launchDetached(bin, ["run", "-c", url.path], log: logURL) else { log("не удалось запустить xray"); return }
+        xrayPID = pid; xrayConfig = cfg
+        log("xray запущен (pid \(pid)), серверов: \(XrayLink.items(ServerStore.load(from: o.home)).count), интерфейс \(phys)")
+    }
+
+    private func stopXray() {
+        guard let pid = xrayPID else { xrayConfig = nil; return }
+        xrayPID = nil; xrayConfig = nil
+        kill(pid, SIGTERM)
+        let deadline = Date().addingTimeInterval(2)
+        while kill(pid, 0) == 0 && Date() < deadline { usleep(100_000) }
+        if kill(pid, 0) == 0 { kill(pid, SIGKILL) }
+    }
+
     // MARK: status
 
     private var lastPublished: TunnelStatus?
@@ -383,6 +435,7 @@ public final class TunnelDaemon {
         var st = TunnelStatus(state: state, message: message, physical: physical, vpn: vpn, updated: Date(),
                               notes: notes.isEmpty ? nil : notes, retryAt: retryAt,
                               servers: state == .running || state == .starting ? serverCount : nil, lists: state == .running || state == .starting ? listCount : nil)
+        st.xrayManaged = xrayAvailable
         if let l = lastPublished, l.state == st.state, l.message == st.message, l.physical == st.physical, l.notes == st.notes, Date().timeIntervalSince(l.updated) < 10 { return }
         if lastPublished?.state != st.state || (state != .running && lastLogged != st.message) {      // transitions only: «работает (самотест N мс)» changes every 20 s
             log("состояние: \(st.state.rawValue) — \(st.message)"); lastLogged = st.message
