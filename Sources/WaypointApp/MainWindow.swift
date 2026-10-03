@@ -86,6 +86,8 @@ struct DashboardView: View {
                 NavBar()
                 ZStack(alignment: .bottom) {
                     content.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                        .id(model.screen)
+                        .transition(.opacity.combined(with: .offset(y: 8)))
                         .clipped()                                           // pages scroll inside their own area, never under the back/forward bar
                     if let t = model.toast {
                         Text(t).font(.callout).padding(.horizontal, 16).padding(.vertical, 10)
@@ -94,6 +96,7 @@ struct DashboardView: View {
                     }
                 }
                 .animation(.snappy, value: model.toast)
+                .animation(.smooth(duration: 0.24), value: model.screen)
             }
         }
         .ignoresSafeArea()
@@ -156,8 +159,10 @@ struct SidebarRow<Content: View>: View {
                 .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(selected ? 0.10 : (hover ? 0.05 : 0))))
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableStyle(scale: 0.98))
         .foregroundStyle(selected ? Color.primary : Color.primary.opacity(0.78))
+        .animation(.snappy(duration: 0.18), value: selected)
+        .animation(.easeOut(duration: 0.12), value: hover)
         .onHover { hover = $0 }
         .accessibilityAddTraits(selected ? .isSelected : [])
     }

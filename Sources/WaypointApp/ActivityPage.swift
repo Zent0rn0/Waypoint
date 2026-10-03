@@ -110,7 +110,7 @@ struct ActivityPage: View {
                         cell(nil) { Text(c.host).lineLimit(1).truncationMode(.middle) }
                         cell(84) { PathBadge(path: c.path) }
                         cell(100) { Text(carrier(c)).foregroundStyle(.secondary).lineLimit(1) }
-                        cell(68, .trailing) { Text(Fmt.bytes(c.download)).monospacedDigit() }
+                        cell(68, .trailing) { Text(Fmt.bytes(c.download)).monospacedDigit().liveNumber(c.download) }
                     }
                     .contentShape(Rectangle())
                     .onTapGesture(count: 2) { if let p = c.appPath, AppPath.isValid(p) { detailApp = AppInfo(path: p, name: c.appName, uses: 0) } }
@@ -199,7 +199,7 @@ struct SummaryStrip: View {
                 if let dot { Circle().fill(dot).frame(width: 6, height: 6) }
                 Text(label).font(.caption).foregroundStyle(.secondary)
             }
-            Text(value).font(.system(size: 14, weight: .semibold)).monospacedDigit()
+            Text(value).font(.system(size: 14, weight: .semibold)).monospacedDigit().liveNumber(value)
         }
     }
 }

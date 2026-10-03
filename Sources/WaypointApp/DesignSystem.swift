@@ -516,6 +516,8 @@ struct CapsuleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.modifier(CapsuleLook(size: controlSize, prominent: prominent, pressed: configuration.isPressed))
             .opacity(configuration.isPressed && prominent ? 0.85 : 1)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1)
+            .animation(.snappy(duration: 0.14), value: configuration.isPressed)
     }
 }
 
@@ -609,6 +611,26 @@ struct SplitBar: View {
 }
 
 
+// MARK: - Motion
+
+extension View {
+    /// Digits that roll to the new value instead of jumping.
+    func liveNumber<V: Equatable>(_ value: V) -> some View {
+        self.contentTransition(.numericText()).animation(.snappy(duration: 0.3), value: value)
+    }
+}
+
+/// Plain button that gives a little under the finger: used for rows and icon buttons that have no capsule of their own.
+struct PressableStyle: ButtonStyle {
+    var scale: CGFloat = 0.97
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? scale : 1)
+            .opacity(configuration.isPressed ? 0.85 : 1)
+            .animation(.snappy(duration: 0.14), value: configuration.isPressed)
+    }
+}
+
 // MARK: - Ambient backdrop
 
 /// Window background: graphite and charcoal melting into each other, drawn as a slowly drifting mesh (a few minutes per loop, barely noticeable),
@@ -631,6 +653,9 @@ struct AmbientBackdrop: View {
 @available(macOS 15.0, *)
 private struct MeshBackdrop: View {
     let dark: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// The drift is only worth drawing while somebody can see it: window on screen and the app in front.
+    @State private var live = NSApp?.isActive ?? true
 
     private func c(_ r: Double, _ g: Double, _ b: Double) -> Color { Color(red: r, green: g, blue: b) }
     private var colors: [Color] {
@@ -649,7 +674,7 @@ private struct MeshBackdrop: View {
     }
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 15)) { ctx in
+        TimelineView(.animation(minimumInterval: 1.0 / 5, paused: !live || reduceMotion || ProcessInfo.processInfo.environment["WP_STATIC"] != nil)) { ctx in
             let t = ctx.date.timeIntervalSinceReferenceDate / 16
             GeometryReader { g in
                 ZStack {
@@ -665,7 +690,7 @@ private struct MeshBackdrop: View {
                                              startPoint: .leading, endPoint: .trailing))
                         .frame(width: g.size.width * 1.8, height: 110)
                         .rotationEffect(.degrees(-28))
-                        .offset(x: CGFloat(sin(t * 0.6)) * g.size.width * 0.08, y: CGFloat(cos(t * 0.5)) * g.size.height * 0.10 + g.size.height * 0.05)
+                        .offset(x: 0, y: g.size.height * 0.05)
                         .blur(radius: 46)
                     // vignette: the edges sink into black, the glass sits on a darker field
                     RadialGradient(colors: [.clear, .black.opacity(dark ? 0.5 : 0.06)], center: .center,
@@ -674,6 +699,11 @@ private struct MeshBackdrop: View {
                 .frame(width: g.size.width, height: g.size.height)
                 .clipped()
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in live = true }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in live = false }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didChangeOcclusionStateNotification)) { n in
+            if let w = n.object as? NSWindow, w is FixedHeightWindow { live = w.occlusionState.contains(.visible) && NSApp.isActive }
         }
     }
 }

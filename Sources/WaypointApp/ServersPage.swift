@@ -162,7 +162,7 @@ struct ServerRow: View {
         Row(title: title, subtitle: subtitle(parsed, russian), dot: server.works == false ? .wpBad : (server.enabled ? .wpGood : .gray)) {
             if let flag { EmojiTile(emoji: flag) } else { IconTile(symbol: "server.rack", color: .indigo) }
         } trailing: {
-            if let ms = model.serverDelays[server.id] ?? server.ms { Text("\(ms) мс").foregroundStyle(ms < 150 ? Color.wpGood : (ms < 400 ? Color.wpWarn : Color.wpBad)).monospacedDigit() }
+            if let ms = model.serverDelays[server.id] ?? server.ms { Text("\(ms) мс").foregroundStyle(ms < 150 ? Color.wpGood : (ms < 400 ? Color.wpWarn : Color.wpBad)).monospacedDigit().liveNumber(ms) }
             else if model.serverDelayFailed.contains(server.id) { Text("нет ответа").foregroundStyle(Color.wpBad) }
             Toggle("", isOn: Binding(get: { server.enabled }, set: { _ in model.toggleServer(server.id) })).toggleStyle(.switch).controlSize(.small).labelsHidden()
             if server.source == nil {

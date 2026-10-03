@@ -65,6 +65,8 @@ struct OverviewPage: View {
             StatusTiles()
             SessionPanel()
         }
+        .animation(.smooth(duration: 0.35), value: model.tunnelInstalled)
+        .animation(.smooth(duration: 0.35), value: model.daemonOutdated)
         .onAppear { model.refreshExitCountry() }
     }
 }
@@ -78,7 +80,7 @@ struct HeroCard: View {
         let h = model.hero
         HStack(alignment: .center, spacing: 18) {
             Circle().fill(h.color.gradient).frame(width: 58, height: 58)
-                .overlay(Image(systemName: h.symbol).font(.system(size: 26, weight: .bold)).foregroundStyle(.white))
+                .overlay(Image(systemName: h.symbol).font(.system(size: 26, weight: .bold)).foregroundStyle(.white).contentTransition(.symbolEffect(.replace)))
                 .shadow(color: h.color.opacity(0.35), radius: 10, y: 3)
             VStack(alignment: .leading, spacing: 4) {
                 Text(h.title).font(.system(size: 24, weight: .bold))
@@ -86,6 +88,7 @@ struct HeroCard: View {
                 if let a = h.action {
                     Button(a.label, action: a.run).barControl(prominent: true).tint(h.color == .gray ? .accentColor : h.color).padding(.top, 6)
                         .disabled(model.daemonBusy || model.vpnBusy)
+                        .transition(.opacity.combined(with: .scale(scale: 0.92, anchor: .leading)))
                 }
             }
             Spacer(minLength: 12)
@@ -100,6 +103,8 @@ struct HeroCard: View {
         }
         .padding(22)
         .glassSurface(radius: Metrics.cardRadius, tint: h.color.opacity(0.06))
+        .animation(.smooth(duration: 0.4), value: h.title)
+        .animation(.smooth(duration: 0.4), value: model.tunnelInstalled)
     }
 }
 
@@ -143,6 +148,7 @@ struct SetupCard: View {
                 }
             }
             .groupBackground()
+            .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
         }
     }
 }
@@ -230,7 +236,7 @@ struct SessionPanel: View {
     private func amount(_ label: String, _ bytes: UInt64, _ color: Color, _ align: HorizontalAlignment) -> some View {
         VStack(alignment: align, spacing: 1) {
             HStack(spacing: 5) { Circle().fill(color).frame(width: 7, height: 7); Text(label).font(.caption).foregroundStyle(.secondary) }
-            Text(Fmt.bytes(bytes)).font(.system(size: 20, weight: .semibold, design: .rounded)).monospacedDigit()
+            Text(Fmt.bytes(bytes)).font(.system(size: 20, weight: .semibold, design: .rounded)).monospacedDigit().liveNumber(bytes)
         }
     }
 }
