@@ -86,6 +86,7 @@ struct DashboardView: View {
                 NavBar()
                 ZStack(alignment: .bottom) {
                     content.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                        .clipped()                                           // pages scroll inside their own area, never under the back/forward bar
                     if let t = model.toast {
                         Text(t).font(.callout).padding(.horizontal, 16).padding(.vertical, 10)
                             .glassCapsule().padding(.bottom, 18)
