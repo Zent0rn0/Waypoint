@@ -100,7 +100,7 @@ struct DashboardView: View {
             }
         }
         .ignoresSafeArea()
-        .background(AmbientBackdrop())
+        .background(IsolatedBackdrop().ignoresSafeArea().allowsHitTesting(false))
         .sheet(isPresented: $m.showOnboarding) { OnboardingView().environment(model) }
     }
 

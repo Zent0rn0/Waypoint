@@ -650,6 +650,20 @@ struct AmbientBackdrop: View {
     }
 }
 
+/// The backdrop in a SwiftUI graph of its own. Its clock ticks several times a second; inside the window's graph every tick
+/// made SwiftUI lay out the whole page again (it was most of the app's CPU). Here a tick touches only this view.
+struct IsolatedBackdrop: NSViewRepresentable {
+    @Environment(\.colorScheme) private var scheme
+    func makeNSView(context: Context) -> NSHostingView<AnyView> {
+        let h = NSHostingView(rootView: AnyView(AmbientBackdrop().environment(\.colorScheme, scheme)))
+        h.sizingOptions = []
+        return h
+    }
+    func updateNSView(_ h: NSHostingView<AnyView>, context: Context) {
+        h.rootView = AnyView(AmbientBackdrop().environment(\.colorScheme, scheme))
+    }
+}
+
 @available(macOS 15.0, *)
 private struct MeshBackdrop: View {
     let dark: Bool
@@ -683,15 +697,15 @@ private struct MeshBackdrop: View {
                         p(t, 0, 0.5, 0, 0.12, 1.7), p(t, 0.5, 0.5, 0.16, 0.16, 3.1), p(t, 1, 0.5, 0, 0.12, 4.4),
                         SIMD2(0, 1), p(t, 0.5, 1, 0.10, 0, 2.3), SIMD2(1, 1),
                     ], colors: colors, smoothsColors: true)
-                    // one faint diagonal band of light, drifting across
-                    RoundedRectangle(cornerRadius: 60)
+                    // one faint diagonal band of light; soft edges come from a gradient mask (a blur filter was rendered on the CPU)
+                    Rectangle()
                         .fill(LinearGradient(colors: [.clear, Color.white.opacity(dark ? 0.05 : 0.30),
                                                        Color(red: 0.55, green: 0.75, blue: 0.70).opacity(dark ? 0.04 : 0.10), .clear],
                                              startPoint: .leading, endPoint: .trailing))
-                        .frame(width: g.size.width * 1.8, height: 110)
+                        .mask(LinearGradient(colors: [.clear, .black, .clear], startPoint: .top, endPoint: .bottom))
+                        .frame(width: g.size.width * 1.8, height: 240)
                         .rotationEffect(.degrees(-28))
                         .offset(x: 0, y: g.size.height * 0.05)
-                        .blur(radius: 46)
                     // vignette: the edges sink into black, the glass sits on a darker field
                     RadialGradient(colors: [.clear, .black.opacity(dark ? 0.5 : 0.06)], center: .center,
                                    startRadius: min(g.size.width, g.size.height) * 0.30, endRadius: max(g.size.width, g.size.height) * 0.75)
