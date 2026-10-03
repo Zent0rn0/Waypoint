@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://zent0rn0.github.io/Waypoint/sitemap.xml

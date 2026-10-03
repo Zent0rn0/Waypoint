@@ -3,14 +3,44 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Waypoint for macOS</title>
-<meta name="description" content="A Mac app that decides by itself which sites and apps go through your VPN and which go direct.">
-<meta property="og:title" content="Waypoint for macOS">
-<meta property="og:description" content="VPN only where you need it.">
-<meta property="og:image" content="../img/overview.png">
+<title>Waypoint — split tunneling and smart VPN routing for macOS</title>
+<meta name="description" content="Free Mac app that decides by itself which sites and apps go through your VPN and which go direct. Per-app and per-site rules, subscriptions, Happ, VLESS, Reality, Hysteria2. Open source.">
+<meta name="keywords" content="Waypoint, split tunneling macOS, split tunnel Mac, VPN routing Mac, per-app VPN, VPN rules by site, bypass blocks Mac, Happ, VLESS, Reality, Hysteria2, sing-box, Xray, VPN subscription, Apple Silicon, open source VPN tool">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="author" content="Zent0rn0">
+<meta name="application-name" content="Waypoint">
+<meta name="apple-mobile-web-app-title" content="Waypoint">
+<meta name="format-detection" content="telephone=no">
+<link rel="canonical" href="https://zent0rn0.github.io/Waypoint/en/">
+<link rel="alternate" hreflang="ru" href="https://zent0rn0.github.io/Waypoint/">
+<link rel="alternate" hreflang="en" href="https://zent0rn0.github.io/Waypoint/en/">
+<link rel="alternate" hreflang="x-default" href="https://zent0rn0.github.io/Waypoint/en/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Waypoint">
+<meta property="og:url" content="https://zent0rn0.github.io/Waypoint/en/">
+<meta property="og:title" content="Waypoint — split tunneling and smart VPN routing for macOS">
+<meta property="og:description" content="Every connection goes direct or through your VPN, and Waypoint makes the call.">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta property="og:image" content="https://zent0rn0.github.io/Waypoint/img/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Waypoint main window: everything works, blocked sites go through the VPN, the rest goes direct">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Waypoint — split tunneling and smart VPN routing for macOS">
+<meta name="twitter:description" content="Every connection goes direct or through your VPN, and Waypoint makes the call.">
+<meta name="twitter:image" content="https://zent0rn0.github.io/Waypoint/img/og.png">
+<meta name="twitter:image:alt" content="Waypoint main window: everything works, blocked sites go through the VPN, the rest goes direct">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#09090b">
-<link rel="icon" href="../img/icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../img/icon-192.png">
+<link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Waypoint","alternateName":"Waypoint for macOS","url":"https://zent0rn0.github.io/Waypoint/en/","description":"A macOS app that picks a path for every connection by itself: direct or through your VPN. Rules for apps and sites, provider subscriptions, server checks and diagnostics.","applicationCategory":"UtilitiesApplication","applicationSubCategory":"Network","operatingSystem":"macOS 14 or later","processorRequirements":"Apple Silicon (arm64)","softwareVersion":"0.3.2","downloadUrl":"https://github.com/Zent0rn0/Waypoint/releases/latest","installUrl":"https://github.com/Zent0rn0/Waypoint/releases/latest","softwareHelp":{"@type":"CreativeWork","url":"https://zent0rn0.github.io/Waypoint/en/#faq"},"license":"https://opensource.org/licenses/MIT","isAccessibleForFree":true,"inLanguage":"ru","image":"https://zent0rn0.github.io/Waypoint/img/og.png","screenshot":["https://zent0rn0.github.io/Waypoint/img/overview.png","https://zent0rn0.github.io/Waypoint/img/scenarios.png","https://zent0rn0.github.io/Waypoint/img/services.png","https://zent0rn0.github.io/Waypoint/img/diagnostics.png","https://zent0rn0.github.io/Waypoint/img/tray.png"],"featureList":["Split tunneling for every app on macOS","Rules for apps, sites and single connections","Provider subscriptions and vless, trojan, ss, hysteria2, vmess links","Server checks, automatic best-server choice, one-button diagnostics","Light and dark theme, menu bar panel","Open source, MIT license"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"},"author":{"@type":"Person","name":"Zent0rn0","url":"https://github.com/Zent0rn0"},"sameAs":["https://github.com/Zent0rn0/Waypoint"],"codeRepository":"https://github.com/Zent0rn0/Waypoint"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Waypoint","url":"https://zent0rn0.github.io/Waypoint/","inLanguage":["ru","en"]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","inLanguage":"en","mainEntity":[{"@type":"Question","name":"Is this a VPN?","acceptedAnswer":{"@type":"Answer","text":"No. Waypoint does not encrypt anything itself and provides no servers. It decides what to send through your VPN and what to let go direct. You need a VPN client you already have, or a subscription link from a provider."}},{"@type":"Question","name":"Why does it need my Mac password?","acceptedAnswer":{"@type":"Answer","text":"Once, to install the system part: without it the app can only work with the browser, not with every app. The password is asked by a macOS dialog; Waypoint never sees or stores it."}},{"@type":"Question","name":"Why does macOS say the app is damaged or from an unknown developer?","acceptedAnswer":{"@type":"Answer","text":"The app is not signed with a paid Apple certificate. That does not mean something is wrong with it: the code is open, you can read it and build it yourself. The command in the Install section removes the block."}},{"@type":"Question","name":"What if Waypoint hangs or I quit it?","acceptedAnswer":{"@type":"Answer","text":"The internet keeps working as usual, just without path selection. The system part switches itself off on any failure and then tries to come back."}},{"@type":"Question","name":"Are my servers or subscription link sent anywhere?","acceptedAnswer":{"@type":"Answer","text":"No. They stay on your Mac. Waypoint contacts the subscription provider to download the server list, and the servers themselves. Nowhere else."}},{"@type":"Question","name":"Does it run on Intel Macs?","acceptedAnswer":{"@type":"Answer","text":"The ready-made build is for Apple Silicon only (M1 and later). You can try building it from source on Intel, but that has not been tested."}},{"@type":"Question","name":"Is the app in English?","acceptedAnswer":{"@type":"Answer","text":"Not yet. The interface is in Russian for now; this page and the screenshots show what each screen does."}},{"@type":"Question","name":"How do I uninstall it?","acceptedAnswer":{"@type":"Answer","text":"In the app open Settings (“Настройки”), find the system component (“Системный компонент”) and press Remove (“Удалить…”). Then move Waypoint from Applications to the Trash."}}]}</script>
 <style>
   :root {
     --bg: #09090b;
@@ -199,7 +229,7 @@
 
 <div class="bar" id="bar"><div class="wrap">
   <header class="top">
-    <a class="brand" href="./"><img src="../img/icon.png" alt="">Waypoint</a>
+    <a class="brand" href="./"><img src="../img/icon.png" alt="" width="256" height="256">Waypoint</a>
     <nav>
       <a href="#how">Why</a>
       <a href="#features">Features</a>
@@ -212,6 +242,7 @@
   </header>
 </div></div>
 
+<main id="main">
 <div class="wrap">
 
   <div class="hero">
@@ -415,6 +446,8 @@ scripts/bundle.sh</code></pre>
     </div>
   </div>
 </section>
+
+</main>
 
 <footer>
   <div class="wrap">
