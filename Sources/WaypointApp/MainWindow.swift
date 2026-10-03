@@ -87,7 +87,7 @@ struct DashboardView: View {
                 ZStack(alignment: .bottom) {
                     content.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                         .id(model.screen)
-                        .transition(.opacity.combined(with: .offset(y: 8)))
+                        .transition(.asymmetric(insertion: .opacity.animation(.easeOut(duration: 0.14)), removal: .identity))
                         .clipped()                                           // pages scroll inside their own area, never under the back/forward bar
                     if let t = model.toast {
                         Text(t).font(.callout).padding(.horizontal, 16).padding(.vertical, 10)
@@ -96,8 +96,7 @@ struct DashboardView: View {
                     }
                 }
                 .animation(.snappy, value: model.toast)
-                .animation(.smooth(duration: 0.24), value: model.screen)
-            }
+                            }
         }
         .ignoresSafeArea()
         .background(IsolatedBackdrop().ignoresSafeArea().allowsHitTesting(false))

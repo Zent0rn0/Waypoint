@@ -119,15 +119,15 @@ struct Page<Content: View>: View {
                 .padding(.vertical, 24)
                 .frame(maxWidth: .infinity)
         }
-        // Rows fade out at the top (under the back/forward bar) and at the bottom instead of being cut off by a hard edge.
-        .mask(
-            VStack(spacing: 0) {
-                LinearGradient(colors: [.clear, .black], startPoint: .top, endPoint: .bottom).frame(height: 22)
-                Rectangle().fill(.black)
-                LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom).frame(height: 30)
-            }
-        )
+        // Rows dissolve into the backdrop colour under the back/forward bar instead of being cut off by a hard edge.
+        // A plain gradient overlay: a mask over the whole page forced an offscreen pass and made pages slow to appear and scroll.
+        .overlay(alignment: .top) {
+            LinearGradient(colors: [edge, edge.opacity(0)], startPoint: .top, endPoint: .bottom)
+                .frame(height: 26).allowsHitTesting(false)
+        }
     }
+    @Environment(\.colorScheme) private var scheme
+    private var edge: Color { scheme == .dark ? Color(white: 0.035) : Color(white: 0.92) }
 }
 
 /// Page header with the same composition as the Overview hero (tile · title · one sentence · ⓘ),
