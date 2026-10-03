@@ -162,16 +162,39 @@ final class AppModel {
     var tunnelRunning: Bool { tunnel?.state == .running || tunnel?.state == .starting }
     var tunnelInstalled: Bool { tunnel != nil }
     /// The installed system component is an older build than the one inside this app (new features need an update).
-    var daemonOutdated: Bool {
-        guard tunnelInstalled, let res = Bundle.main.resourceURL else { return false }
-        let fm = FileManager.default
-        func same(_ name: String) -> Bool {
-            let a = res.appendingPathComponent(name).path, b = "/usr/local/libexec/waypoint/\(name)"
-            guard fm.fileExists(atPath: a), fm.fileExists(atPath: b) else { return true }
-            return fm.contentsEqual(atPath: a, andPath: b)
+    /// Stored, not computed: comparing the binaries byte by byte took long enough to stall every page that showed it.
+    var daemonOutdated = false
+    @ObservationIgnored private var daemonFileKey = ""
+    @ObservationIgnored private var daemonFilesDiffer = false
+
+    /// Cheap on every poll (file sizes and dates); the byte comparison runs off the main thread, and only when a file changed.
+    private func updateDaemonOutdated() {
+        guard tunnelInstalled, let res = Bundle.main.resourceURL else { if daemonOutdated { daemonOutdated = false }; return }
+        let fm = FileManager.default, installed = "/usr/local/libexec/waypoint"
+        let names = ["waypoint", "sing-box"]
+        func stamp(_ path: String) -> String {
+            guard let a = try? fm.attributesOfItem(atPath: path) else { return "-" }
+            return "\(a[.size] ?? 0)@\((a[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0)"
         }
-        let xrayMissing = fm.fileExists(atPath: res.appendingPathComponent("xray").path) && !fm.fileExists(atPath: "/usr/local/libexec/waypoint/xray")
-        return !same("waypoint") || !same("sing-box") || xrayMissing || tunnel?.xrayManaged != true
+        let key = names.map { stamp(res.appendingPathComponent($0).path) + "|" + stamp("\(installed)/\($0)") }.joined(separator: ";")
+        let xrayMissing = fm.fileExists(atPath: res.appendingPathComponent("xray").path) && !fm.fileExists(atPath: "\(installed)/xray")
+        func publish() {
+            let v = daemonFilesDiffer || xrayMissing || tunnel?.xrayManaged != true
+            if v != daemonOutdated { daemonOutdated = v }
+        }
+        if key == daemonFileKey { publish(); return }
+        daemonFileKey = key
+        Task {
+            let differ = await Task.detached { () -> Bool in
+                names.contains { n in
+                    let a = res.appendingPathComponent(n).path, b = "\(installed)/\(n)"
+                    guard FileManager.default.fileExists(atPath: a), FileManager.default.fileExists(atPath: b) else { return false }
+                    return !FileManager.default.contentsEqual(atPath: a, andPath: b)
+                }
+            }.value
+            daemonFilesDiffer = differ
+            publish()
+        }
     }
     var vpnConnected: Bool { vpnState == "Connected" }
 
@@ -292,6 +315,7 @@ final class AppModel {
         lastTunnelState = newTunnel?.state; tunnel = newTunnel
         reportVPN(connected: state.1 == "Connected")
         communityInstalled = Set(CommunityListUpdater.installed(home: engine.supportDirectory).map(\.id))
+        updateDaemonOutdated()
     }
 
     func pollAPI() async {
@@ -862,9 +886,13 @@ final class AppModel {
     }
 
     /// The VPN client's own app (for its icon), if we know it.
+    @ObservationIgnored private var vpnAppPathCache: [String: String?] = [:]
     var vpnAppPath: String? {
         guard let name = settings.vpnServiceName, let bid = VPNLauncher.bundleIDs[name] else { return nil }
-        return NSWorkspace.shared.urlForApplication(withBundleIdentifier: bid)?.path
+        if let hit = vpnAppPathCache[bid] { return hit }                    // a Launch Services lookup on every page draw was wasted work
+        let path = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bid)?.path
+        vpnAppPathCache[bid] = .some(path)
+        return path
     }
 
     // MARK: sites (manual domain rules)
