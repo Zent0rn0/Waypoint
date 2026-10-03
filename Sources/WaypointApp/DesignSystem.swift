@@ -119,6 +119,14 @@ struct Page<Content: View>: View {
                 .padding(.vertical, 24)
                 .frame(maxWidth: .infinity)
         }
+        // Rows fade out at the top (under the back/forward bar) and at the bottom instead of being cut off by a hard edge.
+        .mask(
+            VStack(spacing: 0) {
+                LinearGradient(colors: [.clear, .black], startPoint: .top, endPoint: .bottom).frame(height: 22)
+                Rectangle().fill(.black)
+                LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom).frame(height: 30)
+            }
+        )
     }
 }
 
